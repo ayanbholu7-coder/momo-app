@@ -8,7 +8,7 @@ import streamlit as st
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="🌸")
 
-# Persistent SQLite database setup for users, notes, and direct messages (Permanent storage)
+# Persistent SQLite database setup for users, notes, direct messages, and team tasks (Permanent storage)
 conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
 c = conn.cursor()
 
@@ -23,6 +23,10 @@ c.execute(
 c.execute(
     """CREATE TABLE IF NOT EXISTS messages 
              (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, content TEXT, timestamp TEXT)"""
+)
+c.execute(
+    """CREATE TABLE IF NOT EXISTS tasks 
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, assignee TEXT, deadline TEXT, status TEXT)"""
 )
 conn.commit()
 
@@ -67,6 +71,8 @@ translations = {
         "tab_new": "✦ NEW ENTRY",
         "tab_feed": "✦ LIVE TEAM FEED",
         "tab_msg": "✦ DIRECT MESSAGES",
+        "tab_tasks": "✦ TASK TRACKER",
+        "tab_calc": "✦ QUICK CALCULATOR",
         "create_entry": "Create New Entry",
         "details_label": "Details",
         "details_placeholder": (
@@ -93,6 +99,24 @@ translations = {
         "send_msg": "Send Message",
         "del_msg": "🗑️ Delete Message",
         "lang_label": "Language / زبان",
+        "task_title": "Team Task Assignments",
+        "add_task": "Assign New Task",
+        "task_name_label": "Task Description",
+        "task_name_placeholder": "e.g., Finalize fabric quality check",
+        "assignee_label": "Assign To Team Member",
+        "deadline_label": "Target Deadline",
+        "create_task_btn": "Create Task",
+        "no_tasks": "No active tasks assigned yet.",
+        "calc_title": "Clothing Cost & Pricing Calculator",
+        "calc_mat": "Material Cost per Unit ($)",
+        "calc_labor": "Labor Cost per Unit ($)",
+        "calc_margin": "Desired Profit Margin (%)",
+        "calc_units": "Number of Units Produced",
+        "calc_results": "Financial Breakdown & Estimates",
+        "unit_cost": "Cost Price per Unit:",
+        "selling_price": "Recommended Selling Price:",
+        "total_revenue": "Projected Total Revenue:",
+        "total_profit": "Projected Total Profit:",
     },
     "Urdu": {
         "portal_title": "مومو فیشن",
@@ -102,7 +126,7 @@ translations = {
         "name_label": "نام",
         "name_placeholder": "اپنے کارکن کا نام درج کریں",
         "pass_label": "پاس ورڈ",
-        "pass_placeholder": "अपना پاس ورڈ درج کریں" if False else "اپنا پاس ورڈ درج کریں",
+        "pass_placeholder": "اپنا پاس ورڈ درج کریں",
         "access_btn": "پورٹل کھولیں",
         "choose_name": "نام منتخب کریں",
         "choose_name_placeholder": "مثال کے طور پر: Ayan یا Sarah",
@@ -124,6 +148,8 @@ translations = {
         "tab_new": "✦ نئی انٹری",
         "tab_feed": "✦ لائیو ٹیم فیڈ",
         "tab_msg": "✦ براہ راست پیغام",
+        "tab_tasks": "✦ ٹاسک ٹریکر",
+        "tab_calc": "✦ کیلکولیٹر",
         "create_entry": "نئی انٹری بنائیں",
         "details_label": "تفصیلات",
         "details_placeholder": (
@@ -150,12 +176,30 @@ translations = {
         "send_msg": "پیغام بھیجیں",
         "del_msg": "🗑️ پیغام حذف کریں",
         "lang_label": "زبان / Language",
+        "task_title": "ٹیم ٹاسک اسائنمنٹس",
+        "add_task": "نیا ٹاسک تفویض کریں",
+        "task_name_label": "ٹاسک کی تفصیل",
+        "task_name_placeholder": "مثال کے طور پر، کپڑے کے معیار کی جانچ کریں",
+        "assignee_label": "ممبر کو تفویض کریں",
+        "deadline_label": "آخری تاریخ",
+        "create_task_btn": "ٹاسک بنائیں",
+        "no_tasks": "ابھی تک کوئی ٹاسک اسائن نہیں ہوا۔",
+        "calc_title": "کپڑوں کی لاگت اور قیمت کا کیلکولیٹر",
+        "calc_mat": "فی یونٹ مٹیریل لاگت ($)",
+        "calc_labor": "فی یونٹ لیبر لاگت ($)",
+        "calc_margin": "منافع کا ہدف (%)",
+        "calc_units": "تیار کردہ یونٹس کی تعداد",
+        "calc_results": "مالیاتی تخمینہ اور بریک ڈاؤن",
+        "unit_cost": "فی یونٹ لاگت:",
+        "selling_price": "تجویز کردہ فروخت کی قیمت:",
+        "total_revenue": "کل متوقع آمدنی:",
+        "total_profit": "کل متوقع منافع:",
     },
 }
 
 t = translations[st.session_state["lang"]]
 
-# Bubbly, Minimalistic, Soft Pink Aesthetic matching the Momo Fashion logo
+# Bubbly, Minimalistic, Soft Pink Aesthetic matching the Momo Fashion logo with Click Animations
 st.markdown(
     """
     <style>
@@ -205,6 +249,7 @@ st.markdown(
         color: #C2566F;
     }
 
+    /* Bubbly Click Animation & Hover FX */
     .stButton>button {
         background: #D96B82;
         color: #FFFFFF;
@@ -216,7 +261,7 @@ st.markdown(
         width: 100%;
         border: none;
         box-shadow: 0 4px 15px rgba(217, 107, 130, 0.25);
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .stButton>button:hover {
         background: #C2566F;
@@ -224,8 +269,13 @@ st.markdown(
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 6px 20px rgba(194, 86, 111, 0.35);
     }
+    .stButton>button:active {
+        transform: scale(0.94) translateY(2px);
+        box-shadow: 0 2px 8px rgba(194, 86, 111, 0.4);
+        background-color: #B0455D;
+    }
 
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea, .stNumberInput>div>div>input {
         border-radius: 16px;
         border: 2px solid #E0B5AC;
         background-color: #FFF9F7;
@@ -235,7 +285,7 @@ st.markdown(
         font-weight: 500;
         transition: all 0.3s ease;
     }
-    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus, .stNumberInput>div>div>input:focus {
         border-color: #D96B82;
         background-color: #FFFFFF;
         box-shadow: 0 0 0 4px rgba(217, 107, 130, 0.15);
@@ -508,8 +558,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-tab1, tab2, tab3 = st.tabs(
-    [t["tab_new"], t["tab_feed"], t["tab_msg"]]
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    [t["tab_new"], t["tab_feed"], t["tab_msg"], t["tab_tasks"], t["tab_calc"]]
 )
 
 with tab1:
@@ -762,3 +812,96 @@ with tab3:
                     st.rerun()
                 else:
                     st.warning("Cannot send an empty message.")
+
+with tab4:
+    st.markdown(
+        f"<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>{t['task_title']}</h3>",
+        unsafe_allow_html=True,
+    )
+    
+    with st.form("task_form", clear_on_submit=True):
+        t_title = st.text_input(t["task_name_label"], placeholder=t["task_name_placeholder"])
+        
+        c.execute("SELECT username FROM users ORDER BY username ASC")
+        task_users = [row[0] for row in c.fetchall()]
+        t_assignee = st.selectbox(t["assignee_label"], task_users) if task_users else st.session_state["user_name"]
+        t_deadline = st.text_input(t["deadline_label"], placeholder="e.g. Tomorrow / Friday")
+        
+        t_submit = st.form_submit_button(t["create_task_btn"])
+        if t_submit:
+            if t_title.strip():
+                c.execute(
+                    "INSERT INTO tasks (title, assignee, deadline, status) VALUES (?, ?, ?, ?)",
+                    (t_title, t_assignee, t_deadline if t_deadline else "No Deadline", "Pending")
+                )
+                conn.commit()
+                st.success("Task created successfully!")
+                st.rerun()
+            else:
+                st.warning("Please provide a task description.")
+
+    st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
+    
+    c.execute("SELECT id, title, assignee, deadline, status FROM tasks ORDER BY id DESC")
+    tasks_list = c.fetchall()
+    
+    if not tasks_list:
+        st.info(t["no_tasks"])
+    else:
+        for task in tasks_list:
+            task_id, title, assignee, deadline, status = task
+            st.markdown(
+                f"""
+                <div class="editorial-card">
+                    <div class="card-meta">ASSIGNED TO: {assignee.upper()} &nbsp;&bull;&nbsp; DEADLINE: {deadline.upper()} &nbsp;&bull;&nbsp; STATUS: {status}</div>
+                    <div class="card-content">{title}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            col_t1, col_t2 = st.columns([1, 4])
+            with col_t1:
+                if status == "Pending":
+                    if st.button("Mark Complete", key=f"complete_task_{task_id}"):
+                        c.execute("UPDATE tasks SET status = ? WHERE id = ?", ("Completed", task_id))
+                        conn.commit()
+                        st.rerun()
+            if is_admin:
+                with col_t2:
+                    if st.button("🗑️ Delete Task", key=f"del_task_{task_id}"):
+                        c.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+                        conn.commit()
+                        st.rerun()
+
+with tab5:
+    st.markdown(
+        f"<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>{t['calc_title']}</h3>",
+        unsafe_allow_html=True,
+    )
+    
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        mat_cost = st.number_input(t["calc_mat"], min_value=0.0, value=12.50, step=0.50)
+        labor_cost = st.number_input(t["calc_labor"], min_value=0.0, value=8.00, step=0.50)
+    with col_c2:
+        profit_margin = st.number_input(t["calc_margin"], min_value=0.0, value=40.0, step=5.0)
+        units_produced = st.number_input(t["calc_units"], min_value=1, value=100, step=10)
+        
+    unit_cost_val = mat_cost + labor_cost
+    selling_price_val = unit_cost_val * (1 + (profit_margin / 100.0))
+    total_revenue_val = selling_price_val * units_produced
+    total_profit_val = (selling_price_val - unit_cost_val) * units_produced
+    
+    st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <div class="editorial-card">
+            <div class="card-meta">{t['calc_results']}</div>
+            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['unit_cost']}</strong> ${unit_cost_val:.2f}</p>
+            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['selling_price']}</strong> <span style="color: #C2566F; font-weight: 700;">${selling_price_val:.2f}</span></p>
+            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['total_revenue']}</strong> ${total_revenue_val:,.2f}</p>
+            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['total_profit']}</strong> <span style="color: #4CAF50; font-weight: 700;">${total_profit_val:,.2f}</span></p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
