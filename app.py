@@ -3,11 +3,11 @@ import sqlite3
 import streamlit as st
 
 # ==========================================
-# 🌸 MOMO FASHION - SECURE WORKSPACE & DIRECT MESSAGES
+# 🌸 MOMO FASHION - SECURE PERMANENT WORKSPACE & ADMIN CONTROLS
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="👗")
 
-# Persistent SQLite database setup for users, notes, and direct messages
+# Persistent SQLite database setup for users, notes, and direct messages (Permanent 10+ year storage)
 conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
 c = conn.cursor()
 
@@ -159,16 +159,6 @@ st.markdown(
         max-width: 75%;
         margin-right: auto;
     }
-    
-    .user-list-item {
-        background: #FFFFFF;
-        border: 1px solid #E8D5DC;
-        padding: 12px 15px;
-        margin-bottom: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -185,7 +175,7 @@ if "user_name" not in st.session_state:
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='color: #8C6D76; font-size: 0.9rem; text-align: center; margin-bottom: 25px;'>Sign in or register your worker name & password</p>",
+        "<p style='color: #8C6D76; font-size: 0.9rem; text-align: center; margin-bottom: 25px;'>Sign in or register your permanent worker name & password</p>",
         unsafe_allow_html=True,
     )
 
@@ -247,6 +237,20 @@ if "user_name" not in st.session_state:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
+# Check if current user was kicked/deleted by admin (Ayan)
+c.execute(
+    "SELECT username FROM users WHERE username = ?",
+    (st.session_state["user_name"],),
+)
+if not c.fetchone():
+    st.error("Your account has been removed by administrator Ayan.")
+    del st.session_state["user_name"]
+    if st.button("Return to Login"):
+        st.rerun()
+    st.stop()
+
+is_admin = st.session_state["user_name"].lower() == "ayan"
+
 # --- MAIN APP INTERFACE ---
 st.markdown(
     f"""
@@ -255,14 +259,14 @@ st.markdown(
             <h1 class="editorial-title">MOMO <span>FASHION.</span></h1>
         </div>
         <div style="text-align: right; color: #8C6D76; font-size: 0.85rem; letter-spacing: 1px;">
-            LOGGED IN AS: <strong style="color: #4A1525;">{st.session_state['user_name'].upper()}</strong>
+            LOGGED IN AS: <strong style="color: #4A1525;">{st.session_state['user_name'].upper()}</strong> {"⭐ [ADMIN]" if is_admin else ""}
         </div>
     </div>
 """,
     unsafe_allow_html=True,
 )
 
-# Sidebar controls & Signed Users List
+# Sidebar controls & Signed Users List with Admin Kick Capability
 with st.sidebar:
     st.markdown(
         "<h3 style='font-family: Playfair Display; color: #4A1525;'>Workspace</h3>",
@@ -291,14 +295,26 @@ with st.sidebar:
                     unsafe_allow_html=True,
                 )
             else:
-                st.markdown(
-                    f"<div style='padding: 6px 10px; background: #FFFFFF; border: 1px solid #E8D5DC; color: #3D2C31; margin-bottom: 5px; font-size: 0.9em;'>• {uname}</div>",
-                    unsafe_allow_html=True,
-                )
+                col_u1, col_u2 = st.columns([3, 2])
+                with col_u1:
+                    st.markdown(
+                        f"<div style='padding: 6px 0px; color: #3D2C31; font-size: 0.9em;'>• {uname}</div>",
+                        unsafe_allow_html=True,
+                    )
+                with col_u2:
+                    if is_admin:
+                        if st.button("Kick", key=f"kick_{uname}"):
+                            c.execute(
+                                "DELETE FROM users WHERE username = ?",
+                                (uname,),
+                            )
+                            conn.commit()
+                            st.success(f"Kicked {uname}")
+                            st.rerun()
 
     st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
     st.markdown(
-        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>All notes, direct messages, and user records are permanently saved and synchronized securely across devices.</p>",
+        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>All data is permanently archived in SQLite database and will never expire or be deleted automatically. Admin Ayan holds full management control.</p>",
         unsafe_allow_html=True,
     )
 
@@ -336,7 +352,9 @@ with tab1:
                         ),
                     )
                     conn.commit()
-                    st.success("Entry saved permanently to team feed.")
+                    st.success(
+                        "Entry safely committed to permanent database storage."
+                    )
                     st.rerun()
                 else:
                     st.warning("Please provide details before publishing.")
@@ -383,9 +401,9 @@ with tab2:
                 unsafe_allow_html=True,
             )
 
-            if status == "Active":
-                col_c, col_d = st.columns([1, 4])
-                with col_c:
+            col_c, col_d = st.columns([1, 4])
+            with col_c:
+                if status == "Active":
                     if st.button("Mark Completed", key=f"complete_{note_id}"):
                         completion_msg = f"'{content[:30]}...' is completed by {st.session_state['user_name']}"
                         c.execute(
@@ -394,10 +412,21 @@ with tab2:
                         )
                         conn.commit()
                         st.rerun()
-                st.markdown(
-                    "<div style='margin-bottom: 10px;'></div>",
-                    unsafe_allow_html=True,
-                )
+            if is_admin:
+                with col_d:
+                    if st.button(
+                        "🗑️ Delete Entry (Admin)", key=f"del_note_{note_id}"
+                    ):
+                        c.execute(
+                            "DELETE FROM notes WHERE id = ?", (note_id,)
+                        )
+                        conn.commit()
+                        st.rerun()
+
+            st.markdown(
+                "<div style='margin-bottom: 10px;'></div>",
+                unsafe_allow_html=True,
+            )
 
 with tab3:
     st.markdown(
@@ -405,7 +434,6 @@ with tab3:
         unsafe_allow_html=True,
     )
 
-    # Fetch registered users except current user
     c.execute(
         "SELECT username FROM users WHERE username != ? ORDER BY username ASC",
         (st.session_state["user_name"],),
@@ -414,7 +442,7 @@ with tab3:
 
     if not other_users:
         st.info(
-            "No other registered team members yet. Register another name on a different browser or tab to test messaging!"
+            "No other registered team members yet. Register another user to start messaging!"
         )
     else:
         selected_recipient = st.selectbox(
@@ -423,9 +451,8 @@ with tab3:
 
         st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
 
-        # Display conversation history between current user and selected recipient
         c.execute(
-            """SELECT sender, content, timestamp FROM messages 
+            """SELECT id, sender, content, timestamp FROM messages 
                      WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
                      ORDER BY id ASC""",
             (
@@ -441,10 +468,10 @@ with tab3:
         with chat_container:
             if not chat_history:
                 st.write(
-                    f"No messages with {selected_recipient} yet. Start the conversation below!"
+                    f"No messages with {selected_recipient} yet. Permanent database archiving is active."
                 )
             else:
-                for sender, msg_content, timestamp in chat_history:
+                for msg_id, sender, msg_content, timestamp in chat_history:
                     if sender == st.session_state["user_name"]:
                         st.markdown(
                             f"""
@@ -465,6 +492,16 @@ with tab3:
                         """,
                             unsafe_allow_html=True,
                         )
+
+                    if is_admin:
+                        if st.button(
+                            "🗑️ Delete Message", key=f"del_msg_{msg_id}"
+                        ):
+                            c.execute(
+                                "DELETE FROM messages WHERE id = ?", (msg_id,)
+                            )
+                            conn.commit()
+                            st.rerun()
 
         with st.form("send_msg_form", clear_on_submit=True):
             msg_text = st.text_input(
