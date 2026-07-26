@@ -84,7 +84,7 @@ with tab1:
         else:
             try:
                 genai.configure(api_key=gemini_key)
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("gemini-pro")
 
                 prompt = f"""
                 Extract customer details from this message: "{raw_text}".
