@@ -1,7 +1,7 @@
 import datetime
 import json
 import sqlite3
-import google.generativeai as genai
+from google import genai
 import streamlit as st
 
 # ==========================================
@@ -83,8 +83,7 @@ with tab1:
             st.warning("Please paste a text message first.")
         else:
             try:
-                genai.configure(api_key=gemini_key)
-                model = genai.GenerativeModel("gemini-1.0-pro")
+                client = genai.Client(api_key=gemini_key)
 
                 prompt = f"""
                 Extract customer details from this message: "{raw_text}".
@@ -92,7 +91,10 @@ with tab1:
                 "name", "phone", "address", "items", "price"
                 Do NOT include markdown backticks or block formatting.
                 """
-                response = model.generate_content(prompt)
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=prompt,
+                )
 
                 clean_text = (
                     response.text.replace("```json", "")
