@@ -3,13 +3,18 @@ import sqlite3
 import streamlit as st
 
 # ==========================================
-# 🌸 MOMO FASHION - PERSISTENT REAL-TIME WORKSPACE
+# 🌸 MOMO FASHION - SECURE PERSISTENT WORKSPACE
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="👗")
 
-# Persistent SQLite database setup that survives reloads & restarts
-conn = sqlite3.connect("momo_persistent_notes.db", check_same_thread=False)
+# Persistent SQLite database setup for users and notes
+conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
 c = conn.cursor()
+
+c.execute(
+    """CREATE TABLE IF NOT EXISTS users 
+             (username TEXT PRIMARY KEY, password TEXT)"""
+)
 c.execute(
     """CREATE TABLE IF NOT EXISTS notes 
              (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT, content TEXT, timestamp TEXT, status TEXT)"""
@@ -135,32 +140,76 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- REQUIRE NAME MODAL / SCREEN ON FIRST LOAD ---
+# --- SECURE LOGIN / REGISTRATION SYSTEM ---
 if "user_name" not in st.session_state:
     st.markdown(
-        "<div style='max-width: 450px; margin: 100px auto; text-align: center;'>",
+        "<div style='max-width: 450px; margin: 80px auto;'>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<h1 style='font-family: Playfair Display; color: #4A1525;'>Momo Fashion.</h1>",
+        "<h1 style='font-family: Playfair Display; color: #4A1525; text-align: center;'>Momo Fashion.</h1>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='color: #8C6D76; font-size: 0.9rem; margin-bottom: 25px;'>Please enter your name to enter the workspace</p>",
+        "<p style='color: #8C6D76; font-size: 0.9rem; text-align: center; margin-bottom: 25px;'>Sign in or register your worker name & password</p>",
         unsafe_allow_html=True,
     )
 
-    with st.form("name_entry_form"):
-        entered_name = st.text_input(
-            "Your Name", placeholder="e.g. Ali or Sarah"
-        )
-        enter_btn = st.form_submit_button("Enter Workspace")
-        if enter_btn:
-            if entered_name.strip():
-                st.session_state["user_name"] = entered_name.strip()
-                st.rerun()
-            else:
-                st.warning("Please enter your name to proceed.")
+    auth_tab1, auth_tab2 = st.tabs(["🔐 Sign In", "📝 Register New Name"])
+
+    with auth_tab1:
+        with st.form("login_form"):
+            login_user = st.text_input("Name", placeholder="Your name")
+            login_pass = st.text_input(
+                "Password", type="password", placeholder="Your password"
+            )
+            login_btn = st.form_submit_button("Access Workspace")
+
+            if login_btn:
+                clean_user = login_user.strip()
+                c.execute(
+                    "SELECT password FROM users WHERE username = ?",
+                    (clean_user,),
+                )
+                row = c.fetchone()
+                if row and row[0] == login_pass:
+                    st.session_state["user_name"] = clean_user
+                    st.success("Welcome back!")
+                    st.rerun()
+                else:
+                    st.error("Invalid name or password.")
+
+    with auth_tab2:
+        with st.form("register_form"):
+            reg_user = st.text_input(
+                "Choose Name", placeholder="e.g. Ali or Sarah"
+            )
+            reg_pass = st.text_input(
+                "Choose Password",
+                type="password",
+                placeholder="Create a password",
+            )
+            reg_btn = st.form_submit_button("Register & Enter")
+
+            if reg_btn:
+                clean_user = reg_user.strip()
+                if not clean_user or not reg_pass:
+                    st.warning("Please fill in both fields.")
+                else:
+                    try:
+                        c.execute(
+                            "INSERT INTO users (username, password) VALUES (?, ?)",
+                            (clean_user, reg_pass),
+                        )
+                        conn.commit()
+                        st.session_state["user_name"] = clean_user
+                        st.success("Account created successfully!")
+                        st.rerun()
+                    except sqlite3.IntegrityError:
+                        st.error(
+                            "This name is already registered. Please sign in instead."
+                        )
+
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
@@ -185,20 +234,14 @@ with st.sidebar:
         "<h3 style='font-family: Playfair Display; color: #4A1525;'>Workspace</h3>",
         unsafe_allow_html=True,
     )
-    if st.button("Change Name"):
+    if st.button("Log Out"):
         del st.session_state["user_name"]
         st.rerun()
     st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
     st.markdown(
-        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>All entries and check-offs are permanently saved and synchronized across devices.</p>",
+        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>All entries, check-offs, and user profiles are permanently saved and synchronized securely across devices.</p>",
         unsafe_allow_html=True,
     )
-
-# Check for recently completed notification triggers stored in DB or session
-c.execute(
-    "SELECT content FROM notes WHERE status LIKE 'Completed by%' ORDER BY id DESC LIMIT 1"
-)
-recent_completion = c.fetchone()
 
 tab1, tab2 = st.tabs(["✦ NEW ENTRY", "✦ LIVE TEAM FEED"])
 
@@ -252,7 +295,9 @@ with tab2:
         "<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True
     )
 
-    c.execute("SELECT id, author, content, timestamp, status FROM notes ORDER BY id DESC")
+    c.execute(
+        "SELECT id, author, content, timestamp, status FROM notes ORDER BY id DESC"
+    )
     notes = c.fetchall()
 
     if not notes:
@@ -261,7 +306,6 @@ with tab2:
         for note in notes:
             note_id, author, content, timestamp, status = note
 
-            # If marked completed, show completion notification banner above or inside card
             if status != "Active":
                 st.markdown(
                     f"""<div class="completed-banner">✓ {status}</div>""",
@@ -278,7 +322,6 @@ with tab2:
                 unsafe_allow_html=True,
             )
 
-            # Checkbox / Button to mark as completed if it's still active
             if status == "Active":
                 col_c, col_d = st.columns([1, 4])
                 with col_c:
