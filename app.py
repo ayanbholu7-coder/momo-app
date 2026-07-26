@@ -3,11 +3,11 @@ import sqlite3
 import streamlit as st
 
 # ==========================================
-# 🌸 MOMO FASHION - BLUSH PINK & FLORAL EDITION
+# 🌸 MOMO FASHION - MINIMALISTIC & BUBBLY EDITION
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="🌸")
 
-# Persistent SQLite database setup for users, notes, and direct messages (Permanent 10+ year storage)
+# Persistent SQLite database setup for users, notes, and direct messages (Permanent storage)
 conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
 c = conn.cursor()
 
@@ -25,21 +25,21 @@ c.execute(
 )
 conn.commit()
 
-# Enhanced Blush Pink Aesthetic matching the Momo Fashion brand logo
+# Bubbly, Minimalistic, Soft Pink Aesthetic matching the Momo Fashion logo
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Quicksand:wght@400;500;600;700&display=swap');
 
     .stApp {
-        background-color: #F7EBE8;
-        color: #3D2C31;
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        animation: fadeInApp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        background-color: #F4D5CD;
+        color: #3E2723;
+        font-family: 'Quicksand', sans-serif;
+        animation: fadeInApp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
     @keyframes fadeInApp {
-        from { opacity: 0; transform: translateY(4px); }
+        from { opacity: 0; transform: translateY(6px); }
         to { opacity: 1; transform: translateY(0); }
     }
     
@@ -47,127 +47,144 @@ st.markdown(
     footer {visibility: hidden;}
 
     .hero-container {
-        padding: 30px 0px 20px 0px;
-        border-bottom: 1px solid #E8C8C4;
+        padding: 25px 0px 20px 0px;
+        border-bottom: 2px dashed #E0B5AC;
         margin-bottom: 25px;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
+        animation: slideDown 0.6s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .editorial-title {
         font-family: 'Playfair Display', serif;
-        font-size: 3rem;
-        font-weight: 400;
-        color: #2D1820;
+        font-size: 3.2rem;
+        font-weight: 700;
+        color: #2C1815;
         line-height: 1.1;
         margin: 0;
     }
 
     .editorial-title span {
         font-style: italic;
-        color: #C25E73;
+        color: #C2566F;
     }
 
     .stButton>button {
-        background: #C25E73;
+        background: #D96B82;
         color: #FFFFFF;
-        border-radius: 4px;
-        height: 46px;
-        font-weight: 500;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        font-size: 0.8rem;
+        border-radius: 20px;
+        height: 48px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
         width: 100%;
-        border: 1px solid #C25E73;
-        transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 15px rgba(217, 107, 130, 0.25);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .stButton>button:hover {
-        background: #A8495E;
+        background: #C2566F;
         color: #FFFFFF;
-        border: 1px solid #A8495E;
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 6px 20px rgba(194, 86, 111, 0.35);
     }
 
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        border-radius: 4px;
-        border: 1px solid #E8C8C4;
-        background-color: #FFFDFD;
-        padding: 12px;
-        color: #3D2C31;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        border-radius: 16px;
+        border: 2px solid #E0B5AC;
+        background-color: #FFF9F7;
+        padding: 14px;
+        color: #3E2723;
+        font-family: 'Quicksand', sans-serif;
+        font-weight: 500;
+        transition: all 0.3s ease;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #C25E73;
-        box-shadow: 0 0 0 1px #C25E73;
+        border-color: #D96B82;
+        background-color: #FFFFFF;
+        box-shadow: 0 0 0 4px rgba(217, 107, 130, 0.15);
     }
 
     .editorial-card {
-        background: #FFFDFD;
+        background: #FFF9F7;
         padding: 24px;
-        border: 1px solid #E8C8C4;
-        border-radius: 6px;
+        border: 2px solid #E0B5AC;
+        border-radius: 20px;
         margin-bottom: 18px;
-        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.02);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     .editorial-card:hover {
-        border-color: #C25E73;
-        box-shadow: 0 8px 25px rgba(194, 94, 115, 0.08);
+        border-color: #D96B82;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(217, 107, 130, 0.12);
     }
 
     .card-meta {
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        color: #9E737B;
-        margin-bottom: 6px;
+        color: #8C5C55;
+        font-weight: 700;
+        margin-bottom: 8px;
     }
 
     .card-content {
         font-family: 'Playfair Display', serif;
-        font-size: 1.2rem;
-        color: #3D2C31;
+        font-size: 1.25rem;
+        color: #2C1815;
         line-height: 1.4;
     }
     
     .completed-banner {
-        background-color: #F3D9DF;
-        border-left: 4px solid #C25E73;
-        padding: 10px 15px;
-        font-size: 0.85rem;
-        color: #4A1B24;
-        border-radius: 0 4px 4px 0;
+        background-color: #F8D7D2;
+        border-left: 5px solid #D96B82;
+        padding: 12px 18px;
+        font-size: 0.9rem;
+        color: #3E2723;
+        font-weight: 600;
+        border-radius: 0 12px 12px 0;
         margin-bottom: 15px;
-        letter-spacing: 0.5px;
         animation: fadeInApp 0.4s ease;
     }
     
     .msg-bubble-sent {
-        background-color: #C25E73;
+        background-color: #D96B82;
         color: #FFFFFF;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-        border-radius: 12px 12px 2px 12px;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+        border-radius: 18px 18px 4px 18px;
         max-width: 75%;
         margin-left: auto;
+        box-shadow: 0 4px 12px rgba(217, 107, 130, 0.2);
+        animation: fadeInApp 0.3s ease;
     }
     .msg-bubble-recv {
-        background-color: #FFFDFD;
-        color: #3D2C31;
-        border: 1px solid #E8C8C4;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-        border-radius: 12px 12px 12px 2px;
+        background-color: #FFF9F7;
+        color: #3E2723;
+        border: 2px solid #E0B5AC;
+        padding: 14px 18px;
+        margin-bottom: 12px;
+        border-radius: 18px 18px 18px 4px;
         max-width: 75%;
         margin-right: auto;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        animation: fadeInApp 0.3s ease;
     }
 
     .brand-subtitle {
-        font-size: 0.75rem;
-        letter-spacing: 3px;
+        font-size: 0.8rem;
+        letter-spacing: 2px;
         text-transform: uppercase;
-        color: #9E737B;
-        margin-top: 5px;
+        color: #8C5C55;
+        font-weight: 600;
+        margin-top: 4px;
     }
     </style>
 """,
@@ -177,15 +194,15 @@ st.markdown(
 # --- SECURE LOGIN / REGISTRATION SYSTEM ---
 if "user_name" not in st.session_state:
     st.markdown(
-        "<div style='max-width: 450px; margin: 80px auto; background: #FFFDFD; padding: 40px; border: 1px solid #E8C8C4; border-radius: 8px;'>",
+        "<div style='max-width: 420px; margin: 70px auto; background: #FFF9F7; padding: 40px; border: 2px solid #E0B5AC; border-radius: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); animation: fadeInApp 0.5s ease;'>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<h1 style='font-family: Playfair Display; color: #2D1820; text-align: center; margin-bottom: 0;'>Momo Fashion</h1>",
+        "<h1 style='font-family: Playfair Display; color: #2C1815; text-align: center; margin-bottom: 0;'>Momo Fashion</h1>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p style='text-align: center; font-size: 0.75rem; letter-spacing: 2px; color: #9E737B; text-transform: uppercase; margin-bottom: 25px;'>Clothing Brand Portal</p>",
+        "<p style='text-align: center; font-size: 0.75rem; letter-spacing: 2px; color: #8C5C55; text-transform: uppercase; margin-bottom: 25px; font-weight: 600;'>Clothing Brand Portal</p>",
         unsafe_allow_html=True,
     )
 
@@ -269,8 +286,8 @@ st.markdown(
             <h1 class="editorial-title">MOMO <span>FASHION</span></h1>
             <div class="brand-subtitle">Clothing Brand &bull; Permanent Secure Portal</div>
         </div>
-        <div style="text-align: right; color: #9E737B; font-size: 0.85rem; letter-spacing: 1px;">
-            LOGGED IN AS: <strong style="color: #C25E73;">{st.session_state['user_name'].upper()}</strong> {"⭐ [ADMIN]" if is_admin else ""}
+        <div style="text-align: right; color: #8C5C55; font-size: 0.85rem; letter-spacing: 1px; font-weight: 600;">
+            LOGGED IN AS: <strong style="color: #D96B82;">{st.session_state['user_name'].upper()}</strong> {"⭐ [ADMIN]" if is_admin else ""}
         </div>
     </div>
 """,
@@ -280,16 +297,16 @@ st.markdown(
 # Sidebar controls & Signed Users List with Admin Kick Capability
 with st.sidebar:
     st.markdown(
-        "<h3 style='font-family: Playfair Display; color: #2D1820;'>Workspace Menu</h3>",
+        "<h3 style='font-family: Playfair Display; color: #2C1815;'>Workspace Menu</h3>",
         unsafe_allow_html=True,
     )
     if st.button("Log Out"):
         del st.session_state["user_name"]
         st.rerun()
-    st.markdown("<hr style='border-color: #E8C8C4;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
 
     st.markdown(
-        "<h4 style='font-family: Playfair Display; color: #2D1820; font-size: 1.1rem;'>Signed Team Members</h4>",
+        "<h4 style='font-family: Playfair Display; color: #2C1815; font-size: 1.1rem;'>Signed Team Members</h4>",
         unsafe_allow_html=True,
     )
     c.execute("SELECT username FROM users ORDER BY username ASC")
@@ -302,14 +319,14 @@ with st.sidebar:
             uname = u_row[0]
             if uname == st.session_state["user_name"]:
                 st.markdown(
-                    f"<div style='padding: 6px 10px; background: #F3D9DF; color: #2D1820; border-radius: 4px; margin-bottom: 5px; font-size: 0.9em;'>🌸 <b>{uname}</b> (You)</div>",
+                    f"<div style='padding: 8px 12px; background: #F8D7D2; color: #2C1815; border-radius: 12px; margin-bottom: 6px; font-size: 0.9em; font-weight: 600;'>🌸 <b>{uname}</b> (You)</div>",
                     unsafe_allow_html=True,
                 )
             else:
                 col_u1, col_u2 = st.columns([3, 2])
                 with col_u1:
                     st.markdown(
-                        f"<div style='padding: 6px 0px; color: #3D2C31; font-size: 0.9em;'>• {uname}</div>",
+                        f"<div style='padding: 6px 0px; color: #3E2723; font-size: 0.9em; font-weight: 500;'>• {uname}</div>",
                         unsafe_allow_html=True,
                     )
                 with col_u2:
@@ -323,9 +340,9 @@ with st.sidebar:
                             st.success(f"Kicked {uname}")
                             st.rerun()
 
-    st.markdown("<hr style='border-color: #E8C8C4;'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
     st.markdown(
-        "<p style='font-size: 0.8rem; color: #9E737B; line-height: 1.6;'>All data is permanently stored and will never expire. Admin Ayan holds full management control.</p>",
+        "<p style='font-size: 0.8rem; color: #8C5C55; line-height: 1.6;'>All data is permanently stored and never expires. Admin Ayan holds full management control.</p>",
         unsafe_allow_html=True,
     )
 
@@ -337,7 +354,7 @@ with tab1:
     col1, col2 = st.columns([2, 1])
     with col1:
         st.markdown(
-            "<h3 style='font-family: Playfair Display; font-weight: 400; color: #2D1820;'>Create New Entry</h3>",
+            "<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>Create New Entry</h3>",
             unsafe_allow_html=True,
         )
         with st.form("editorial_form", clear_on_submit=True):
@@ -374,7 +391,7 @@ with tab2:
     col_a, col_b = st.columns([4, 1])
     with col_a:
         st.markdown(
-            "<h3 style='font-family: Playfair Display; font-weight: 400; color: #2D1820;'>Live Team Stream</h3>",
+            "<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>Live Team Stream</h3>",
             unsafe_allow_html=True,
         )
     with col_b:
@@ -441,7 +458,7 @@ with tab2:
 
 with tab3:
     st.markdown(
-        "<h3 style='font-family: Playfair Display; font-weight: 400; color: #2D1820;'>Direct Messages</h3>",
+        "<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>Direct Messages</h3>",
         unsafe_allow_html=True,
     )
 
@@ -460,7 +477,7 @@ with tab3:
             "Select Team Member to Message", other_users
         )
 
-        st.markdown("<hr style='border-color: #E8C8C4;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
 
         c.execute(
             """SELECT id, sender, content, timestamp FROM messages 
@@ -487,7 +504,7 @@ with tab3:
                         st.markdown(
                             f"""
                             <div class="msg-bubble-sent">
-                                <div style="font-size: 0.7rem; opacity: 0.8; margin-bottom: 4px;">YOU &bull; {timestamp}</div>
+                                <div style="font-size: 0.7rem; opacity: 0.85; margin-bottom: 4px; font-weight: 600;">YOU &bull; {timestamp}</div>
                                 {msg_content}
                             </div>
                         """,
@@ -497,7 +514,7 @@ with tab3:
                         st.markdown(
                             f"""
                             <div class="msg-bubble-recv">
-                                <div style="font-size: 0.7rem; color: #9E737B; margin-bottom: 4px;">{sender.upper()} &bull; {timestamp}</div>
+                                <div style="font-size: 0.7rem; color: #8C5C55; margin-bottom: 4px; font-weight: 600;">{sender.upper()} &bull; {timestamp}</div>
                                 {msg_content}
                             </div>
                         """,
