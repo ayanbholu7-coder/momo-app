@@ -1,7 +1,7 @@
 import datetime
 import json
 import sqlite3
-from google import genai
+import requests
 import streamlit as st
 
 # ==========================================
@@ -83,28 +83,29 @@ with tab1:
             st.warning("Please paste a text message first.")
         else:
             try:
-                client = genai.Client(api_key=gemini_key)
-
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
                 prompt = f"""
                 Extract customer details from this message: "{raw_text}".
                 Return ONLY a raw JSON object with these exact keys:
                 "name", "phone", "address", "items", "price"
                 Do NOT include markdown backticks or block formatting.
                 """
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=prompt,
-                )
-
-                clean_text = (
-                    response.text.replace("```json", "")
-                    .replace("```", "")
-                    .strip()
-                )
-                data = json.loads(clean_text)
-
-                st.session_state["extracted"] = data
-                st.success("Details Extracted Successfully!")
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}]
+                }
+                headers = {"Content-Type": "application/json"}
+                
+                res = requests.post(url, json=payload, headers=headers)
+                result_json = res.json()
+                
+                if "candidates" in result_json:
+                    text_output = result_json["candidates"][0]["content"]["parts"][0]["text"]
+                    clean_text = text_output.replace("```json", "").replace("```", "").strip()
+                    data = json.loads(clean_text)
+                    st.session_state["extracted"] = data
+                    st.success("Details Extracted Successfully!")
+                else:
+                    st.error(f"API Error Response: {result_json}")
             except Exception as e:
                 st.error(f"Extraction Error: {e}")
 
