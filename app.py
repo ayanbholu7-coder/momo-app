@@ -3,99 +3,111 @@ import sqlite3
 import streamlit as st
 
 # ==========================================
-# 🎨 MOMO FASHION - ULTRA MINIMALIST UI
+# 🌸 MOMO FASHION - EDITORIAL LUXURY UI
 # ==========================================
 st.set_page_config(
-    page_title="Momo Fashion", layout="centered", page_icon="👗"
+    page_title="Momo Fashion", layout="wide", page_icon="👗"
 )
 
-# Ultra-modern frosted glass and pink/white minimalist aesthetic
+# Editorial High-End Serif & Minimalist Styling
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
 
     .stApp {
-        background: linear-gradient(135deg, #FFF0F3 0%, #FFFFFF 100%);
+        background-color: #FFF8FA;
+        color: #3D2C31;
         font-family: 'Plus Jakarta Sans', sans-serif;
-        color: #2D3748;
     }
     
-    /* Hide default streamlit headers/footers for a cleaner app look */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
-    h1, h2, h3 {
-        color: #9C1445;
-        font-weight: 700;
-        letter-spacing: -0.5px;
+    /* Editorial Hero Section */
+    .hero-container {
+        padding: 40px 0px 20px 0px;
+        border-bottom: 1px solid #E8D5DC;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
     }
 
-    /* Sleek Modern Buttons */
+    .editorial-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.2rem;
+        font-weight: 400;
+        color: #4A1525;
+        line-height: 1.1;
+        margin: 0;
+    }
+
+    .editorial-title span {
+        font-style: italic;
+        color: #B83B5E;
+    }
+
+    /* Minimalist Outline / Solid Buttons */
     .stButton>button {
-        background: #9C1445;
+        background: #4A1525;
         color: #FFFFFF;
-        border-radius: 14px;
-        height: 50px;
-        font-weight: 600;
+        border-radius: 0px;
+        height: 48px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-size: 0.85rem;
         width: 100%;
-        border: none;
-        box-shadow: 0 4px 14px rgba(156, 20, 69, 0.2);
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #4A1525;
+        transition: all 0.3s ease;
     }
     .stButton>button:hover {
-        background: #7B0E35;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(156, 20, 69, 0.3);
-    }
-    .stButton>button:active {
-        transform: translateY(0px);
+        background: transparent;
+        color: #4A1525;
+        border: 1px solid #4A1525;
     }
 
-    /* Minimalist Inputs */
+    /* Clean Input Fields */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        border-radius: 12px;
-        border: 1.5px solid #F3D2DE;
+        border-radius: 0px;
+        border: 1px solid #E8D5DC;
         background-color: #FFFFFF;
         padding: 12px;
-        color: #2D3748;
-        transition: all 0.2s ease;
+        color: #3D2C31;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #9C1445;
-        box-shadow: 0 0 0 3px rgba(156, 20, 69, 0.1);
+        border-color: #B83B5E;
+        box-shadow: none;
     }
 
-    /* Glassmorphism Feed Cards */
-    .note-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(10px);
-        padding: 22px;
-        border-radius: 18px;
-        border: 1px solid rgba(243, 210, 222, 0.6);
-        box-shadow: 0 10px 30px rgba(156, 20, 69, 0.04);
-        margin-bottom: 18px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        animation: slideUp 0.4s ease-out;
+    /* Editorial Note Cards */
+    .editorial-card {
+        background: #FFFFFF;
+        padding: 28px;
+        border: 1px solid #E8D5DC;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
     }
-    .note-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 35px rgba(156, 20, 69, 0.08);
+    .editorial-card:hover {
+        border-color: #B83B5E;
+        box-shadow: 0 10px 30px rgba(184, 59, 94, 0.05);
     }
 
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
+    .card-meta {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #8C6D76;
+        margin-bottom: 8px;
     }
 
-    /* Badge styles */
-    .worker-badge {
-        background-color: #FCE8EE;
-        color: #9C1445;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: 600;
+    .card-content {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        color: #3D2C31;
+        line-height: 1.5;
     }
     </style>
 """,
@@ -103,7 +115,7 @@ st.markdown(
 )
 
 # --- DATABASE SETUP ---
-conn = sqlite3.connect("momo_shared_notes.db", check_same_thread=False)
+conn = sqlite3.connect("momo_editorial_notes.db", check_same_thread=False)
 c = conn.cursor()
 c.execute(
     """CREATE TABLE IF NOT EXISTS notes 
@@ -111,75 +123,96 @@ c.execute(
 )
 conn.commit()
 
-st.title("👗 Momo Fashion")
+# --- HEADER LAYOUT ---
 st.markdown(
-    "<p style='text-align: center; color: #718096; margin-top: -10px; margin-bottom: 30px;'>Clean, shared workspace for team orders & updates</p>",
+    """
+    <div class="hero-container">
+        <div>
+            <h1 class="editorial-title">MOMO <span>FASHION.</span></h1>
+        </div>
+        <div style="text-align: right; color: #8C6D76; font-size: 0.9rem; letter-spacing: 1px;">
+            SHARED WORKSPACE • EDITORIAL EDITION
+        </div>
+    </div>
+""",
     unsafe_allow_html=True,
 )
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.subheader("Worker Session")
-    worker_name = st.text_input(
-        "Your Name", value="Worker", placeholder="Enter your display name"
-    )
-    st.markdown("---")
     st.markdown(
-        "<p style='font-size: 0.85em; color: #A0AEC0;'>Everything posted syncs instantly across all connected devices.</p>",
+        "<h3 style='font-family: Playfair Display; color: #4A1525;'>Session</h3>",
+        unsafe_allow_html=True,
+    )
+    worker_name = st.text_input(
+        "Worker Name", value="Staff", placeholder="Your name"
+    )
+    st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>Entries recorded here synchronize instantly across all team devices.</p>",
         unsafe_allow_html=True,
     )
 
 # --- TABS ---
-tab1, tab2 = st.tabs(["✨ New Update", "📋 Live Team Feed"])
+tab1, tab2 = st.tabs(["✦ NEW ENTRY", "✦ TEAM FEED"])
 
 with tab1:
-    st.subheader("Post Order / Note")
-    with st.form("note_form", clear_on_submit=True):
-        note_content = st.text_area(
-            "Write details here...",
-            height=130,
-            placeholder="e.g. Ahmed Khan - Black suit medium size - Verified",
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.markdown(
+            "<h3 style='font-family: Playfair Display; font-weight: 400; color: #4A1525;'>Log New Order / Note</h3>",
+            unsafe_allow_html=True,
         )
-        submit_btn = st.form_submit_button("Publish to Team ✨")
+        with st.form("editorial_form", clear_on_submit=True):
+            note_content = st.text_area(
+                "Details",
+                height=150,
+                placeholder="e.g. Ahmed Khan — Black Suit Medium — Confirmed",
+            )
+            submit_btn = st.form_submit_button("Publish Entry")
 
-        if submit_btn:
-            if note_content.strip():
-                current_time = datetime.datetime.now().strftime(
-                    "%b %d, %Y • %I:%M %p"
-                )
-                c.execute(
-                    "INSERT INTO notes (author, content, timestamp) VALUES (?, ?, ?)",
-                    (worker_name, note_content, current_time),
-                )
-                conn.commit()
-                st.success("Published successfully!")
-                st.rerun()
-            else:
-                st.warning("Please type a message before publishing.")
+            if submit_btn:
+                if note_content.strip():
+                    current_time = datetime.datetime.now().strftime(
+                        "%B %d, %Y — %I:%M %p"
+                    )
+                    c.execute(
+                        "INSERT INTO notes (author, content, timestamp) VALUES (?, ?, ?)",
+                        (worker_name, note_content, current_time),
+                    )
+                    conn.commit()
+                    st.success("Entry published to team stream.")
+                    st.rerun()
+                else:
+                    st.warning("Please provide details before publishing.")
 
 with tab2:
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.subheader("Feed")
-    with col2:
-        if st.button("🔄 Sync"):
+    col_a, col_b = st.columns([4, 1])
+    with col_a:
+        st.markdown(
+            "<h3 style='font-family: Playfair Display; font-weight: 400; color: #4A1525;'>Live Team Stream</h3>",
+            unsafe_allow_html=True,
+        )
+    with col_b:
+        if st.button("Sync Feed"):
             st.rerun()
+
+    st.markdown(
+        "<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True
+    )
 
     c.execute("SELECT * FROM notes ORDER BY id DESC")
     notes = c.fetchall()
 
     if not notes:
-        st.info("No notes found. Be the first to add an entry!")
+        st.info("No records found in the live stream.")
     else:
         for note in notes:
             st.markdown(
                 f"""
-                <div class="note-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="worker-badge">👤 {note[1]}</span>
-                        <span style="color: #A0AEC0; font-size: 0.8em;">{note[3]}</span>
-                    </div>
-                    <p style="margin-top: 12px; white-space: pre-wrap; font-size: 0.95em; line-height: 1.5;">{note[2]}</p>
+                <div class="editorial-card">
+                    <div class="card-meta">BY {note[1].upper()} &nbsp;&bull;&nbsp; {note[3]}</div>
+                    <div class="card-content">{note[2]}</div>
                 </div>
             """,
                 unsafe_allow_html=True,
