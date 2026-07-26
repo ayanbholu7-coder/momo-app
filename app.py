@@ -1,9 +1,23 @@
+import datetime
 import json
 import sqlite3
-from google import genai
+import google.generativeai as genai
 import streamlit as st
 
-# Setup local database inside the app
+# ==========================================
+# ⚙️ YOUR CONTROL SWITCHES
+# ==========================================
+IS_PAID = True
+EXPIRY_DATE = "2026-08-30"
+ADMIN_PIN = "1231"
+
+# --- 1. CHECK PAYWALL / ACCESS STATUS ---
+today = datetime.date.today().strftime("%Y-%m-%d")
+is_expired = today > EXPIRY_DATE
+query_params = st.query_params
+is_admin_mode = query_params.get("secret") == ADMIN_PIN
+
+# Database setup
 conn = sqlite3.connect("momo_orders.db", check_same_thread=False)
 c = conn.cursor()
 c.execute(
@@ -12,11 +26,28 @@ c.execute(
 )
 conn.commit()
 
+# --- 2. DISPLAY LOCK SCREEN IF EXPIRED OR LOCKED ---
+if (not IS_PAID or is_expired) and not is_admin_mode:
+    st.set_page_config(page_title="Access Expired", page_icon="🔒")
+    st.error("🔒 Momo Fashion — Access License Expired")
+    st.write(
+        "Your monthly access period has ended. Please contact your administrator to extend your license."
+    )
+
+    st.divider()
+    pin_input = st.text_input("Enter Admin PIN to bypass:", type="password")
+    if pin_input == ADMIN_PIN:
+        st.success("Correct PIN! Reloading app...")
+        st.query_params["secret"] = ADMIN_PIN
+        st.rerun()
+
+    st.stop()
+
+# --- 3. MAIN UNLOCKED APP ---
 st.set_page_config(
     page_title="Momo Fashion Orders", layout="centered", page_icon="👗"
 )
 
-# Custom pink theme styling
 st.markdown(
     """
     <style>
@@ -30,12 +61,15 @@ st.markdown(
 
 st.title("👗 Momo Fashion Orders")
 
-# Sidebar for your Google AI key
 gemini_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+
+if is_admin_mode:
+    st.sidebar.warning("⚡ Admin Mode Active")
+    st.sidebar.write(f"Current Expiry Date: `{EXPIRY_DATE}`")
+    st.sidebar.write(f"Payment Active: `{IS_PAID}`")
 
 tab1, tab2 = st.tabs(["✨ New Order", "📋 Saved Orders"])
 
-# Tab 1: Extract and Save Order
 with tab1:
     st.subheader("Paste Customer Message")
     raw_text = st.text_area(
@@ -49,16 +83,16 @@ with tab1:
             st.warning("Please paste a text message first.")
         else:
             try:
-                client = genai.Client(api_key=gemini_key)
+                genai.configure(api_key=gemini_key)
+                model = genai.GenerativeModel("gemini-1.5-flash")
+
                 prompt = f"""
                 Extract customer details from this message: "{raw_text}".
                 Return ONLY a raw JSON object with these exact keys:
                 "name", "phone", "address", "items", "price"
                 Do NOT include markdown backticks or block formatting.
                 """
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash", contents=prompt
-                )
+                response = model.generate_content(prompt)
 
                 clean_text = (
                     response.text.replace("```json", "")
@@ -95,7 +129,6 @@ with tab1:
             st.success("Order Saved Successfully!")
             st.session_state["extracted"] = {}
 
-# Tab 2: Dashboard
 with tab2:
     st.subheader("Customer Orders")
     c.execute("SELECT * FROM orders ORDER BY id DESC")
