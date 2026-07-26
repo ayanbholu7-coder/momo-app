@@ -1,155 +1,144 @@
 import datetime
-import json
 import sqlite3
-import requests
 import streamlit as st
 
 # ==========================================
-# ⚙️ YOUR CONTROL SWITCHES
+# 🎨 MOMO FASHION - SHARED TEAM NOTES UI
 # ==========================================
-IS_PAID = True
-EXPIRY_DATE = "2026-08-30"
-ADMIN_PIN = "1231"
-
-# --- 1. CHECK PAYWALL / ACCESS STATUS ---
-today = datetime.date.today().strftime("%Y-%m-%d")
-is_expired = today > EXPIRY_DATE
-query_params = st.query_params
-is_admin_mode = query_params.get("secret") == ADMIN_PIN
-
-# Database setup
-conn = sqlite3.connect("momo_orders.db", check_same_thread=False)
-c = conn.cursor()
-c.execute(
-    """CREATE TABLE IF NOT EXISTS orders 
-             (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT, address TEXT, items TEXT, price TEXT)"""
-)
-conn.commit()
-
-# --- 2. DISPLAY LOCK SCREEN IF EXPIRED OR LOCKED ---
-if (not IS_PAID or is_expired) and not is_admin_mode:
-    st.set_page_config(page_title="Access Expired", page_icon="🔒")
-    st.error("🔒 Momo Fashion — Access License Expired")
-    st.write(
-        "Your monthly access period has ended. Please contact your administrator to extend your license."
-    )
-
-    st.divider()
-    pin_input = st.text_input("Enter Admin PIN to bypass:", type="password")
-    if pin_input == ADMIN_PIN:
-        st.success("Correct PIN! Reloading app...")
-        st.query_params["secret"] = ADMIN_PIN
-        st.rerun()
-
-    st.stop()
-
-# --- 3. MAIN UNLOCKED APP ---
 st.set_page_config(
-    page_title="Momo Fashion Orders", layout="centered", page_icon="👗"
+    page_title="Momo Fashion", layout="centered", page_icon="👗"
 )
 
+# Custom Minimalist Pink & White CSS with smooth fade animations
 st.markdown(
     """
     <style>
-    .stApp { background-color: #FFF5F7; }
-    h1, h2, h3 { color: #E91E63; text-align: center; }
-    .stButton>button { background-color: #E91E63; color: white; border-radius: 12px; height: 50px; font-weight: bold; width: 100%; border: none; }
+    .stApp {
+        background-color: #FFF5F7;
+        color: #4A4A4A;
+        font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3 {
+        color: #D81B60;
+        text-align: center;
+        font-weight: 700;
+    }
+    .stButton>button {
+        background-color: #D81B60;
+        color: white;
+        border-radius: 12px;
+        height: 48px;
+        font-weight: 600;
+        width: 100%;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        background-color: #AD1457;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(216, 27, 96, 0.2);
+    }
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+        border-radius: 10px;
+        border: 1px solid #F8BBD0;
+        background-color: #FFFFFF;
+    }
+    .note-card {
+        background-color: #FFFFFF;
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 4px 15px rgba(216, 27, 96, 0.05);
+        margin-bottom: 15px;
+        border-left: 5px solid #D81B60;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-st.title("👗 Momo Fashion Orders")
+# --- DATABASE SETUP FOR SHARED TEAM ACCESS ---
+conn = sqlite3.connect("momo_shared_notes.db", check_same_thread=False)
+c = conn.cursor()
+c.execute(
+    """CREATE TABLE IF NOT EXISTS notes 
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT, content TEXT, timestamp TEXT)"""
+)
+conn.commit()
 
-gemini_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+st.title("👗 Momo Fashion Team Notes")
+st.markdown(
+    "<p style='text-align: center; color: #888;'>Collaborative workspace for all workers</p>",
+    unsafe_allow_html=True,
+)
 
-if is_admin_mode:
-    st.sidebar.warning("⚡ Admin Mode Active")
-    st.sidebar.write(f"Current Expiry Date: `{EXPIRY_DATE}`")
-    st.sidebar.write(f"Payment Active: `{IS_PAID}`")
-
-tab1, tab2 = st.tabs(["✨ New Order", "📋 Saved Orders"])
-
-with tab1:
-    st.subheader("Paste Customer Message")
-    raw_text = st.text_area(
-        "Paste WhatsApp message here (Roman Urdu / English):", height=120
+# Sidebar for worker identification
+with st.sidebar:
+    st.image(
+        "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=300&auto=format&fit=crop&q=60",
+        use_container_width=True,
+    )
+    st.subheader("Worker Profile")
+    worker_name = st.text_input(
+        "Your Name / Tag", value="Worker", placeholder="Enter your name"
+    )
+    st.info(
+        "💡 Everything you post here is saved to the shared cloud database so other workers can see it instantly upon refreshing."
     )
 
-    if st.button("✨ Extract Details with AI"):
-        if not gemini_key:
-            st.error("Please enter your Gemini API Key in the left sidebar!")
-        elif not raw_text:
-            st.warning("Please paste a text message first.")
-        else:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-                prompt = f"""
-                Extract customer details from this message: "{raw_text}".
-                Return ONLY a raw JSON object with these exact keys:
-                "name", "phone", "address", "items", "price"
-                Do NOT include markdown backticks or block formatting.
-                """
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}]
-                }
-                headers = {"Content-Type": "application/json"}
-                
-                res = requests.post(url, json=payload, headers=headers)
-                result_json = res.json()
-                
-                if "candidates" in result_json:
-                    text_output = result_json["candidates"][0]["content"]["parts"][0]["text"]
-                    clean_text = text_output.replace("```json", "").replace("```", "").strip()
-                    data = json.loads(clean_text)
-                    st.session_state["extracted"] = data
-                    st.success("Details Extracted Successfully!")
-                else:
-                    st.error(f"API Error Response: {result_json}")
-            except Exception as e:
-                st.error(f"Extraction Error: {e}")
+# --- MAIN INTERFACE ---
+tab1, tab2 = st.tabs(["✍️ New Note / Order", "📋 Shared Team Feed"])
 
-    st.divider()
-
-    ext = st.session_state.get("extracted", {})
-
-    with st.form("save_order_form"):
-        name = st.text_input("Customer Name", value=ext.get("name", ""))
-        phone = st.text_input("Phone Number", value=ext.get("phone", ""))
-        address = st.text_input(
-            "Delivery Address", value=ext.get("address", "")
+with tab1:
+    st.subheader("Add a New Note")
+    with st.form("note_form", clear_on_submit=True):
+        note_content = st.text_area(
+            "Write customer order detail, update, or note:",
+            height=140,
+            placeholder="e.g. Ahmed Khan requested a black suit medium size...",
         )
-        items = st.text_area("Order Items", value=ext.get("items", ""))
-        price = st.text_input("Price (PKR)", value=str(ext.get("price", "")))
+        submit_btn = st.form_submit_button("Post to Team Feed ✨")
 
-        submitted = st.form_submit_button("SAVE ORDER")
-        if submitted:
-            c.execute(
-                "INSERT INTO orders (name, phone, address, items, price) VALUES (?, ?, ?, ?, ?)",
-                (name, phone, address, items, price),
-            )
-            conn.commit()
-            st.success("Order Saved Successfully!")
-            st.session_state["extracted"] = {}
+        if submit_btn:
+            if note_content.strip():
+                current_time = datetime.datetime.now().strftime(
+                    "%b %d, %Y - %I:%M %p"
+                )
+                c.execute(
+                    "INSERT INTO notes (author, content, timestamp) VALUES (?, ?, ?)",
+                    (worker_name, note_content, current_time),
+                )
+                conn.commit()
+                st.success("Note posted successfully for everyone to see!")
+                st.rerun()
+            else:
+                st.warning("Please write something before posting.")
 
 with tab2:
-    st.subheader("Customer Orders")
-    c.execute("SELECT * FROM orders ORDER BY id DESC")
-    orders = c.fetchall()
+    st.subheader("Live Shared Feed")
 
-    if not orders:
-        st.info("No orders saved yet.")
+    if st.button("🔄 Refresh Feed"):
+        st.rerun()
+
+    c.execute("SELECT * FROM notes ORDER BY id DESC")
+    notes = c.fetchall()
+
+    if not notes:
+        st.info("No team notes yet. Be the first to add one!")
     else:
-        for order in orders:
-            with st.container(border=True):
-                st.markdown(f"### {order[1]} — **PKR {order[5]}**")
-                st.write(f"📞 **Phone:** {order[2]}")
-                st.write(f"📍 **Address:** {order[3]}")
-                st.write(f"📦 **Items:** {order[4]}")
-
-                clean_phone = "".join(filter(str.isdigit, str(order[2])))
-                if clean_phone:
-                    st.markdown(
-                        f"[💬 Open WhatsApp Chat](https://wa.me/{clean_phone})",
-                        unsafe_allow_html=True,
-                    )
+        for note in notes:
+            # Render a clean, animated minimal card for each note
+            st.markdown(
+                f"""
+                <div class="note-card">
+                    <strong style="color: #D81B60; font-size: 1.1em;">👤 {note[1]}</strong>
+                    <span style="float: right; color: #aaa; font-size: 0.85em;">{note[3]}</span>
+                    <p style="margin-top: 10px; white-space: pre-wrap; font-size: 1em;">{note[2]}</p>
+                </div>
+            """,
+                unsafe_allow_html=True,
+            )
