@@ -1,11 +1,15 @@
 import datetime
 import sqlite3
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 
 # ==========================================
 # 🌸 MOMO FASHION - MINIMALISTIC & BUBBLY EDITION
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="🌸")
+
+# Auto-refresh chat and live feed every 3 seconds to instantly display new messages without losing selection
+st_autorefresh(interval=3000, key="momo_live_sync")
 
 # Persistent SQLite database setup for users, notes, and direct messages (Permanent storage)
 conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
@@ -473,9 +477,20 @@ with tab3:
             "No other registered team members yet. Register another user to start messaging!"
         )
     else:
+        # Preserve selected recipient in session state so auto-refreshes don't reset the dropdown
+        if (
+            "selected_recipient" not in st.session_state
+            or st.session_state["selected_recipient"] not in other_users
+        ):
+            st.session_state["selected_recipient"] = other_users[0]
+
         selected_recipient = st.selectbox(
-            "Select Team Member to Message", other_users
+            "Select Team Member to Message",
+            other_users,
+            index=other_users.index(st.session_state["selected_recipient"]),
+            key="recipient_selectbox",
         )
+        st.session_state["selected_recipient"] = selected_recipient
 
         st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
 
@@ -531,6 +546,7 @@ with tab3:
                             conn.commit()
                             st.rerun()
 
+        # Handle message sending via form and automatically trigger a clean rerun
         with st.form("send_msg_form", clear_on_submit=True):
             msg_text = st.text_input(
                 "Type your message...", placeholder="Write a direct message..."
