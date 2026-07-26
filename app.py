@@ -3,13 +3,13 @@ import sqlite3
 import streamlit as st
 
 # ==========================================
-# 🌸 MOMO FASHION - EDITORIAL LUXURY UI
+# 🌸 MOMO FASHION - ANIMATED EDITORIAL UI
 # ==========================================
 st.set_page_config(
     page_title="Momo Fashion", layout="wide", page_icon="👗"
 )
 
-# Editorial High-End Serif & Minimalist Styling
+# Editorial High-End Serif & Minimalist Styling with Smooth CSS Page Transitions
 st.markdown(
     """
     <style>
@@ -19,6 +19,12 @@ st.markdown(
         background-color: #FFF8FA;
         color: #3D2C31;
         font-family: 'Plus Jakarta Sans', sans-serif;
+        animation: fadeInApp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    @keyframes fadeInApp {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     
     #MainMenu {visibility: hidden;}
@@ -32,6 +38,12 @@ st.markdown(
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
+        animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     .editorial-title {
@@ -48,7 +60,7 @@ st.markdown(
         color: #B83B5E;
     }
 
-    /* Minimalist Outline / Solid Buttons */
+    /* Minimalist Outline / Solid Buttons with Smooth Hover Animation */
     .stButton>button {
         background: #4A1525;
         color: #FFFFFF;
@@ -60,15 +72,17 @@ st.markdown(
         font-size: 0.85rem;
         width: 100%;
         border: 1px solid #4A1525;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .stButton>button:hover {
         background: transparent;
         color: #4A1525;
         border: 1px solid #4A1525;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 21, 37, 0.08);
     }
 
-    /* Clean Input Fields */
+    /* Clean Input Fields with Glow Transition */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         border-radius: 0px;
         border: 1px solid #E8D5DC;
@@ -76,23 +90,32 @@ st.markdown(
         padding: 12px;
         color: #3D2C31;
         font-family: 'Plus Jakarta Sans', sans-serif;
+        transition: all 0.3s ease;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
         border-color: #B83B5E;
-        box-shadow: none;
+        box-shadow: 0 0 0 2px rgba(184, 59, 94, 0.1);
     }
 
-    /* Editorial Note Cards */
+    /* Editorial Note Cards with Slide-Up Entrance Animation */
     .editorial-card {
         background: #FFFFFF;
         padding: 28px;
         border: 1px solid #E8D5DC;
         margin-bottom: 20px;
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    
+    @keyframes cardEntrance {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .editorial-card:hover {
         border-color: #B83B5E;
-        box-shadow: 0 10px 30px rgba(184, 59, 94, 0.05);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 35px rgba(184, 59, 94, 0.08);
     }
 
     .card-meta {
@@ -131,7 +154,7 @@ st.markdown(
             <h1 class="editorial-title">MOMO <span>FASHION.</span></h1>
         </div>
         <div style="text-align: right; color: #8C6D76; font-size: 0.9rem; letter-spacing: 1px;">
-            SHARED WORKSPACE • EDITORIAL EDITION
+            SHARED WORKSPACE • ANIMATED EDITION
         </div>
     </div>
 """,
@@ -149,11 +172,11 @@ with st.sidebar:
     )
     st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
     st.markdown(
-        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>Entries recorded here synchronize instantly across all team devices.</p>",
+        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>Entries recorded here synchronize instantly across all team devices with smooth animations.</p>",
         unsafe_allow_html=True,
     )
 
-# --- TABS ---
+# --- TABS WITH SMOOTH TRANSITIONS ---
 tab1, tab2 = st.tabs(["✦ NEW ENTRY", "✦ TEAM FEED"])
 
 with tab1:
