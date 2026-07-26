@@ -8,7 +8,7 @@ import streamlit as st
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="🌸")
 
-# Persistent SQLite database setup for users, notes, direct messages, and team tasks (Permanent storage)
+# Persistent SQLite database setup for users, notes, direct messages, team tasks, and private notes (Permanent storage)
 conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
 c = conn.cursor()
 
@@ -27,6 +27,14 @@ c.execute(
 c.execute(
     """CREATE TABLE IF NOT EXISTS tasks 
              (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, assignee TEXT, deadline TEXT, status TEXT)"""
+)
+c.execute(
+    """CREATE TABLE IF NOT EXISTS requests 
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, title TEXT, details TEXT, status TEXT, timestamp TEXT)"""
+)
+c.execute(
+    """CREATE TABLE IF NOT EXISTS private_vault_notes 
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT, content TEXT, timestamp TEXT)"""
 )
 conn.commit()
 
@@ -72,7 +80,8 @@ translations = {
         "tab_feed": "✦ LIVE TEAM FEED",
         "tab_msg": "✦ DIRECT MESSAGES",
         "tab_tasks": "✦ TASK TRACKER",
-        "tab_calc": "✦ QUICK CALCULATOR",
+        "tab_req": "✦ REQUESTS",
+        "tab_vault": "✦ VAULT NOTES",
         "create_entry": "Create New Entry",
         "details_label": "Details",
         "details_placeholder": (
@@ -107,16 +116,6 @@ translations = {
         "deadline_label": "Target Deadline",
         "create_task_btn": "Create Task",
         "no_tasks": "No active tasks assigned yet.",
-        "calc_title": "Clothing Cost & Pricing Calculator",
-        "calc_mat": "Material Cost per Unit ($)",
-        "calc_labor": "Labor Cost per Unit ($)",
-        "calc_margin": "Desired Profit Margin (%)",
-        "calc_units": "Number of Units Produced",
-        "calc_results": "Financial Breakdown & Estimates",
-        "unit_cost": "Cost Price per Unit:",
-        "selling_price": "Recommended Selling Price:",
-        "total_revenue": "Projected Total Revenue:",
-        "total_profit": "Projected Total Profit:",
     },
     "Urdu": {
         "portal_title": "مومو فیشن",
@@ -149,7 +148,8 @@ translations = {
         "tab_feed": "✦ لائیو ٹیم فیڈ",
         "tab_msg": "✦ براہ راست پیغام",
         "tab_tasks": "✦ ٹاسک ٹریکر",
-        "tab_calc": "✦ کیلکولیٹر",
+        "tab_req": "✦ درخواستیں",
+        "tab_vault": "✦ والٹ نوٹس",
         "create_entry": "نئی انٹری بنائیں",
         "details_label": "تفصیلات",
         "details_placeholder": (
@@ -184,16 +184,6 @@ translations = {
         "deadline_label": "آخری تاریخ",
         "create_task_btn": "ٹاسک بنائیں",
         "no_tasks": "ابھی تک کوئی ٹاسک اسائن نہیں ہوا۔",
-        "calc_title": "کپڑوں کی لاگت اور قیمت کا کیلکولیٹر",
-        "calc_mat": "فی یونٹ مٹیریل لاگت ($)",
-        "calc_labor": "فی یونٹ لیبر لاگت ($)",
-        "calc_margin": "منافع کا ہدف (%)",
-        "calc_units": "تیار کردہ یونٹس کی تعداد",
-        "calc_results": "مالیاتی تخمینہ اور بریک ڈاؤن",
-        "unit_cost": "فی یونٹ لاگت:",
-        "selling_price": "تجویز کردہ فروخت کی قیمت:",
-        "total_revenue": "کل متوقع آمدنی:",
-        "total_profit": "کل متوقع منافع:",
     },
 }
 
@@ -373,7 +363,6 @@ st.markdown(
 
 # --- SECURE LOGIN / REGISTRATION SYSTEM ---
 if "user_name" not in st.session_state:
-    # Language toggle on login screen
     selected_lang = st.selectbox(
         t["lang_label"], ["English", "Urdu"], index=["English", "Urdu"].index(st.session_state["lang"])
     )
@@ -496,7 +485,6 @@ st.markdown(
 
 # Sidebar controls & Signed Users List with Admin Kick Capability
 with st.sidebar:
-    # Language switch selector inside sidebar
     selected_lang = st.selectbox(
         t["lang_label"], ["English", "Urdu"], index=["English", "Urdu"].index(st.session_state["lang"])
     )
@@ -558,8 +546,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    [t["tab_new"], t["tab_feed"], t["tab_msg"], t["tab_tasks"], t["tab_calc"]]
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+    [t["tab_new"], t["tab_feed"], t["tab_msg"], t["tab_tasks"], t["tab_req"], t["tab_vault"]]
 )
 
 with tab1:
@@ -675,7 +663,6 @@ with tab2:
             )
 
 with tab3:
-    # Automatically refresh the chat tab once per second (1000 milliseconds)
     st_autorefresh(interval=1000, key="chat_autorefresh")
 
     st.markdown(
@@ -708,7 +695,6 @@ with tab3:
 
         st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
 
-        # Fetch chat history
         c.execute(
             """SELECT id, sender, content, timestamp FROM messages 
                      WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
@@ -722,7 +708,6 @@ with tab3:
         )
         chat_history = c.fetchall()
 
-        # Check for new messages to play a notification chime sound effect
         if "last_msg_count" not in st.session_state:
             st.session_state["last_msg_count"] = len(chat_history)
 
@@ -783,7 +768,6 @@ with tab3:
                             conn.commit()
                             st.rerun()
 
-        # Manual Refresh & Send controls
         col_ref1, col_ref2 = st.columns([1, 4])
         with col_ref1:
             if st.button(t["refresh_chat"]):
@@ -875,33 +859,144 @@ with tab4:
 
 with tab5:
     st.markdown(
-        f"<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>{t['calc_title']}</h3>",
+        "<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>Team Requests (Send, Accept & Decline)</h3>",
         unsafe_allow_html=True,
     )
     
-    col_c1, col_c2 = st.columns(2)
-    with col_c1:
-        mat_cost = st.number_input(t["calc_mat"], min_value=0.0, value=12.50, step=0.50)
-        labor_cost = st.number_input(t["calc_labor"], min_value=0.0, value=8.00, step=0.50)
-    with col_c2:
-        profit_margin = st.number_input(t["calc_margin"], min_value=0.0, value=40.0, step=5.0)
-        units_produced = st.number_input(t["calc_units"], min_value=1, value=100, step=10)
+    req_sub_tab1, req_sub_tab2 = st.tabs(["📤 Send New Request", "📥 Inbox & Sent Requests"])
+    
+    with req_sub_tab1:
+        with st.form("send_request_form", clear_on_submit=True):
+            c.execute("SELECT username FROM users WHERE username != ? ORDER BY username ASC", (st.session_state["user_name"],))
+            target_users = [row[0] for row in c.fetchall()]
+            
+            if not target_users:
+                st.info("No other team members available to send requests to.")
+            else:
+                req_recipient = st.selectbox("Send Request To", target_users)
+                req_title = st.text_input("Request Subject / Title", placeholder="e.g. Budget Approval for Fabric Batch B")
+                req_details = st.text_area("Request Description & Details", placeholder="Provide context for approval...")
+                req_submit = st.form_submit_button("Submit Request")
+                
+                if req_submit:
+                    if req_title.strip() and req_details.strip():
+                        req_time = datetime.datetime.now().strftime("%B %d, %Y — %I:%M %p")
+                        c.execute(
+                            "INSERT INTO requests (sender, receiver, title, details, status, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+                            (st.session_state["user_name"], req_recipient, req_title, req_details, "Pending", req_time)
+                        )
+                        conn.commit()
+                        st.success("Request sent successfully!")
+                        st.rerun()
+                    else:
+                        st.warning("Please fill in both the title and details.")
+                        
+    with req_sub_tab2:
+        st.markdown("<h4 style='color: #2C1815;'>Incoming Requests (Pending Your Decision)</h4>", unsafe_allow_html=True)
+        c.execute("SELECT id, sender, title, details, status, timestamp FROM requests WHERE receiver = ? ORDER BY id DESC", (st.session_state["user_name"],))
+        incoming_reqs = c.fetchall()
         
-    unit_cost_val = mat_cost + labor_cost
-    selling_price_val = unit_cost_val * (1 + (profit_margin / 100.0))
-    total_revenue_val = selling_price_val * units_produced
-    total_profit_val = (selling_price_val - unit_cost_val) * units_produced
-    
-    st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
+        pending_in = [r for r in incoming_reqs if r[4] == "Pending"]
+        if not pending_in:
+            st.info("No pending incoming requests.")
+        else:
+            for req in pending_in:
+                r_id, r_sender, r_title, r_details, r_status, r_time = req
+                st.markdown(
+                    f"""
+                    <div class="editorial-card">
+                        <div class="card-meta">FROM: {r_sender.upper()} &nbsp;&bull;&nbsp; {r_time} &nbsp;&bull;&nbsp; STATUS: {r_status}</div>
+                        <div class="card-content" style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">{r_title}</div>
+                        <p style="color: #3E2723; margin: 0;">{r_details}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                col_r1, col_r2 = st.columns(2)
+                with col_r1:
+                    if st.button("✅ Accept Request", key=f"accept_req_{r_id}"):
+                        c.execute("UPDATE requests SET status = ? WHERE id = ?", ("Accepted", r_id))
+                        conn.commit()
+                        st.success("Request accepted!")
+                        st.rerun()
+                with col_r2:
+                    if st.button("❌ Decline Request", key=f"decline_req_{r_id}"):
+                        c.execute("UPDATE requests SET status = ? WHERE id = ?", ("Declined", r_id))
+                        conn.commit()
+                        st.warning("Request declined.")
+                        st.rerun()
+                        
+        st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: #2C1815;'>All Other / History Requests</h4>", unsafe_allow_html=True)
+        c.execute("SELECT id, sender, receiver, title, details, status, timestamp FROM requests WHERE sender = ? OR receiver = ? ORDER BY id DESC", (st.session_state["user_name"], st.session_state["user_name"]))
+        all_reqs = c.fetchall()
+        
+        if not all_reqs:
+            st.info("No request history found.")
+        else:
+            for req in all_reqs:
+                r_id, r_sender, r_receiver, r_title, r_details, r_status, r_time = req
+                status_color = "#4CAF50" if r_status == "Accepted" else ("#D96B82" if r_status == "Declined" else "#E0B5AC")
+                st.markdown(
+                    f"""
+                    <div style="background: #FFF9F7; padding: 16px; border: 2px solid #E0B5AC; border-radius: 14px; margin-bottom: 12px;">
+                        <div style="font-size: 0.75rem; color: #8C5C55; font-weight: 700; text-transform: uppercase;">FROM: {r_sender.upper()} &rarr; TO: {r_receiver.upper()} &nbsp;|&nbsp; {r_time}</div>
+                        <div style="font-family: Playfair Display; font-size: 1.1rem; color: #2C1815; font-weight: 700; margin-top: 4px;">{r_title}</div>
+                        <div style="font-size: 0.9rem; color: #3E2723; margin-top: 2px;">{r_details}</div>
+                        <div style="margin-top: 8px; font-weight: 700; font-size: 0.85rem; color: {status_color};">Status: {r_status}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                if is_admin or r_sender == st.session_state["user_name"]:
+                    if st.button("🗑️ Delete Request", key=f"del_req_{r_id}"):
+                        c.execute("DELETE FROM requests WHERE id = ?", (r_id,))
+                        conn.commit()
+                        st.rerun()
+
+with tab6:
     st.markdown(
-        f"""
-        <div class="editorial-card">
-            <div class="card-meta">{t['calc_results']}</div>
-            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['unit_cost']}</strong> ${unit_cost_val:.2f}</p>
-            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['selling_price']}</strong> <span style="color: #C2566F; font-weight: 700;">${selling_price_val:.2f}</span></p>
-            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['total_revenue']}</strong> ${total_revenue_val:,.2f}</p>
-            <p style="font-size: 1.1rem; margin: 5px 0;"><strong>{t['total_profit']}</strong> <span style="color: #4CAF50; font-weight: 700;">${total_profit_val:,.2f}</span></p>
-        </div>
-        """,
+        "<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>🔒 Private Vault Notes (Only You Can See & Never Expires)</h3>",
         unsafe_allow_html=True,
     )
+    
+    with st.form("vault_note_form", clear_on_submit=True):
+        vault_content = st.text_area("New Private Note Content", placeholder="Write private notes, passwords, ideas, or reminders here...")
+        vault_submit = st.form_submit_button("Save to Vault")
+        
+        if vault_submit:
+            if vault_content.strip():
+                v_time = datetime.datetime.now().strftime("%B %d, %Y — %I:%M %p")
+                c.execute(
+                    "INSERT INTO private_vault_notes (owner, content, timestamp) VALUES (?, ?, ?)",
+                    (st.session_state["user_name"], vault_content, v_time)
+                )
+                conn.commit()
+                st.success("Note securely saved to your private vault!")
+                st.rerun()
+            else:
+                st.warning("Note cannot be empty.")
+                
+    st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
+    
+    c.execute("SELECT id, content, timestamp FROM private_vault_notes WHERE owner = ? ORDER BY id DESC", (st.session_state["user_name"],))
+    vault_notes = c.fetchall()
+    
+    if not vault_notes:
+        st.info("Your private vault is currently empty. Notes stored here are strictly private to you, permanent, and never expire.")
+    else:
+        for v_note in vault_notes:
+            v_id, v_text, v_timestamp = v_note
+            st.markdown(
+                f"""
+                <div class="editorial-card">
+                    <div class="card-meta">VAULT ENTRY &nbsp;&bull;&nbsp; {v_timestamp}</div>
+                    <div class="card-content">{v_text}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button("🗑️ Delete Note", key=f"del_vault_{v_id}"):
+                c.execute("DELETE FROM private_vault_notes WHERE id = ?", (v_id,))
+                conn.commit()
+                st.rerun()
