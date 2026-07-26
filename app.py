@@ -3,11 +3,11 @@ import sqlite3
 import streamlit as st
 
 # ==========================================
-# 🌸 MOMO FASHION - SECURE PERSISTENT WORKSPACE
+# 🌸 MOMO FASHION - SECURE WORKSPACE & DIRECT MESSAGES
 # ==========================================
 st.set_page_config(page_title="Momo Fashion", layout="wide", page_icon="👗")
 
-# Persistent SQLite database setup for users and notes
+# Persistent SQLite database setup for users, notes, and direct messages
 conn = sqlite3.connect("momo_secure_workspace.db", check_same_thread=False)
 c = conn.cursor()
 
@@ -18,6 +18,10 @@ c.execute(
 c.execute(
     """CREATE TABLE IF NOT EXISTS notes 
              (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT, content TEXT, timestamp TEXT, status TEXT)"""
+)
+c.execute(
+    """CREATE TABLE IF NOT EXISTS messages 
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, sender TEXT, receiver TEXT, content TEXT, timestamp TEXT)"""
 )
 conn.commit()
 
@@ -135,6 +139,36 @@ st.markdown(
         letter-spacing: 0.5px;
         animation: fadeInApp 0.4s ease;
     }
+    
+    .msg-bubble-sent {
+        background-color: #4A1525;
+        color: #FFFFFF;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        max-width: 75%;
+        margin-left: auto;
+    }
+    .msg-bubble-recv {
+        background-color: #FFFFFF;
+        color: #3D2C31;
+        border: 1px solid #E8D5DC;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        max-width: 75%;
+        margin-right: auto;
+    }
+    
+    .user-list-item {
+        background: #FFFFFF;
+        border: 1px solid #E8D5DC;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -228,7 +262,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sidebar controls
+# Sidebar controls & Signed Users List
 with st.sidebar:
     st.markdown(
         "<h3 style='font-family: Playfair Display; color: #4A1525;'>Workspace</h3>",
@@ -238,12 +272,39 @@ with st.sidebar:
         del st.session_state["user_name"]
         st.rerun()
     st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
+
     st.markdown(
-        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>All entries, check-offs, and user profiles are permanently saved and synchronized securely across devices.</p>",
+        "<h4 style='font-family: Playfair Display; color: #4A1525; font-size: 1.1rem;'>Signed Team Members</h4>",
+        unsafe_allow_html=True,
+    )
+    c.execute("SELECT username FROM users ORDER BY username ASC")
+    all_registered_users = c.fetchall()
+
+    if not all_registered_users:
+        st.write("No signed members yet.")
+    else:
+        for u_row in all_registered_users:
+            uname = u_row[0]
+            if uname == st.session_state["user_name"]:
+                st.markdown(
+                    f"<div style='padding: 6px 10px; background: #FCE8EE; color: #4A1525; margin-bottom: 5px; font-size: 0.9em;'>✦ <b>{uname}</b> (You)</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"<div style='padding: 6px 10px; background: #FFFFFF; border: 1px solid #E8D5DC; color: #3D2C31; margin-bottom: 5px; font-size: 0.9em;'>• {uname}</div>",
+                    unsafe_allow_html=True,
+                )
+
+    st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='font-size: 0.8rem; color: #8C6D76; line-height: 1.6;'>All notes, direct messages, and user records are permanently saved and synchronized securely across devices.</p>",
         unsafe_allow_html=True,
     )
 
-tab1, tab2 = st.tabs(["✦ NEW ENTRY", "✦ LIVE TEAM FEED"])
+tab1, tab2, tab3 = st.tabs(
+    ["✦ NEW ENTRY", "✦ LIVE TEAM FEED", "✦ DIRECT MESSAGES"]
+)
 
 with tab1:
     col1, col2 = st.columns([2, 1])
@@ -337,3 +398,93 @@ with tab2:
                     "<div style='margin-bottom: 10px;'></div>",
                     unsafe_allow_html=True,
                 )
+
+with tab3:
+    st.markdown(
+        "<h3 style='font-family: Playfair Display; font-weight: 400; color: #4A1525;'>Direct Messages</h3>",
+        unsafe_allow_html=True,
+    )
+
+    # Fetch registered users except current user
+    c.execute(
+        "SELECT username FROM users WHERE username != ? ORDER BY username ASC",
+        (st.session_state["user_name"],),
+    )
+    other_users = [row[0] for row in c.fetchall()]
+
+    if not other_users:
+        st.info(
+            "No other registered team members yet. Register another name on a different browser or tab to test messaging!"
+        )
+    else:
+        selected_recipient = st.selectbox(
+            "Select Team Member to Message", other_users
+        )
+
+        st.markdown("<hr style='border-color: #E8D5DC;'>", unsafe_allow_html=True)
+
+        # Display conversation history between current user and selected recipient
+        c.execute(
+            """SELECT sender, content, timestamp FROM messages 
+                     WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
+                     ORDER BY id ASC""",
+            (
+                st.session_state["user_name"],
+                selected_recipient,
+                selected_recipient,
+                st.session_state["user_name"],
+            ),
+        )
+        chat_history = c.fetchall()
+
+        chat_container = st.container(height=350)
+        with chat_container:
+            if not chat_history:
+                st.write(
+                    f"No messages with {selected_recipient} yet. Start the conversation below!"
+                )
+            else:
+                for sender, msg_content, timestamp in chat_history:
+                    if sender == st.session_state["user_name"]:
+                        st.markdown(
+                            f"""
+                            <div class="msg-bubble-sent">
+                                <div style="font-size: 0.7rem; opacity: 0.7; margin-bottom: 4px;">YOU &bull; {timestamp}</div>
+                                {msg_content}
+                            </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(
+                            f"""
+                            <div class="msg-bubble-recv">
+                                <div style="font-size: 0.7rem; color: #8C6D76; margin-bottom: 4px;">{sender.upper()} &bull; {timestamp}</div>
+                                {msg_content}
+                            </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
+
+        with st.form("send_msg_form", clear_on_submit=True):
+            msg_text = st.text_input(
+                "Type your message...", placeholder="Write a direct message..."
+            )
+            send_btn = st.form_submit_button("Send Message")
+
+            if send_btn:
+                if msg_text.strip():
+                    msg_time = datetime.datetime.now().strftime("%I:%M %p")
+                    c.execute(
+                        "INSERT INTO messages (sender, receiver, content, timestamp) VALUES (?, ?, ?, ?)",
+                        (
+                            st.session_state["user_name"],
+                            selected_recipient,
+                            msg_text,
+                            msg_time,
+                        ),
+                    )
+                    conn.commit()
+                    st.rerun()
+                else:
+                    st.warning("Cannot send an empty message.")
