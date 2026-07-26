@@ -1,5 +1,6 @@
 import datetime
 import sqlite3
+from streamlit_autorefresh import st_autorefresh
 import streamlit as st
 
 # ==========================================
@@ -101,7 +102,7 @@ translations = {
         "name_label": "نام",
         "name_placeholder": "اپنے کارکن کا نام درج کریں",
         "pass_label": "پاس ورڈ",
-        "pass_placeholder": "اپنا پاس ورڈ درج کریں",
+        "pass_placeholder": "अपना پاس ورڈ درج کریں" if False else "اپنا پاس ورڈ درج کریں",
         "access_btn": "پورٹل کھولیں",
         "choose_name": "نام منتخب کریں",
         "choose_name_placeholder": "مثال کے طور پر: Ayan یا Sarah",
@@ -624,6 +625,9 @@ with tab2:
             )
 
 with tab3:
+    # Automatically refresh the chat tab once per second (1000 milliseconds)
+    st_autorefresh(interval=1000, key="chat_autorefresh")
+
     st.markdown(
         f"<h3 style='font-family: Playfair Display; font-weight: 700; color: #2C1815;'>{t['dm_title']}</h3>",
         unsafe_allow_html=True,
