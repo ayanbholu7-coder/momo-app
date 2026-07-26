@@ -1,7 +1,6 @@
 import datetime
 import sqlite3
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
 
 # ==========================================
 # 🌸 MOMO FASHION - MINIMALISTIC & BUBBLY EDITION
@@ -490,85 +489,81 @@ with tab3:
 
         st.markdown("<hr style='border-color: #E0B5AC;'>", unsafe_allow_html=True)
 
-        # Dedicated isolated container for chat history that refreshes every 1 second (1000ms) with a gentle sound effect
-        chat_refresh_placeholder = st.empty()
+        # Fetch chat history
+        c.execute(
+            """SELECT id, sender, content, timestamp FROM messages 
+                     WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
+                     ORDER BY id ASC""",
+            (
+                st.session_state["user_name"],
+                selected_recipient,
+                selected_recipient,
+                st.session_state["user_name"],
+            ),
+        )
+        chat_history = c.fetchall()
 
-        with chat_refresh_placeholder.container():
-            # Auto-refresh only this chat block every 1 second
-            st_autorefresh(
-                interval=1000, key=f"chat_loop_{selected_recipient}"
+        # Check for new messages to play a notification chime sound effect
+        if "last_msg_count" not in st.session_state:
+            st.session_state["last_msg_count"] = len(chat_history)
+
+        if len(chat_history) > st.session_state["last_msg_count"]:
+            st.session_state["last_msg_count"] = len(chat_history)
+            st.markdown(
+                """
+                <audio autoplay style="display:none;">
+                    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+                </audio>
+            """,
+                unsafe_allow_html=True,
             )
+        elif len(chat_history) < st.session_state["last_msg_count"]:
+            st.session_state["last_msg_count"] = len(chat_history)
 
-            c.execute(
-                """SELECT id, sender, content, timestamp FROM messages 
-                         WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) 
-                         ORDER BY id ASC""",
-                (
-                    st.session_state["user_name"],
-                    selected_recipient,
-                    selected_recipient,
-                    st.session_state["user_name"],
-                ),
-            )
-            chat_history = c.fetchall()
-
-            # Check if there's any new incoming message to trigger a subtle chime sound effect
-            if "last_msg_count" not in st.session_state:
-                st.session_state["last_msg_count"] = len(chat_history)
-
-            if len(chat_history) > st.session_state["last_msg_count"]:
-                st.session_state["last_msg_count"] = len(chat_history)
-                # Play subtle notification sound using HTML audio synthesizer / beep
-                st.markdown(
-                    """
-                    <audio autoplay style="display:none;">
-                        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-                    </audio>
-                """,
-                    unsafe_allow_html=True,
+        chat_container = st.container(height=350)
+        with chat_container:
+            if not chat_history:
+                st.write(
+                    f"No messages with {selected_recipient} yet. Permanent database archiving is active."
                 )
-            elif len(chat_history) < st.session_state["last_msg_count"]:
-                st.session_state["last_msg_count"] = len(chat_history)
+            else:
+                for msg_id, sender, msg_content, timestamp in chat_history:
+                    if sender == st.session_state["user_name"]:
+                        st.markdown(
+                            f"""
+                            <div class="msg-bubble-sent">
+                                <div style="font-size: 0.7rem; opacity: 0.85; margin-bottom: 4px; font-weight: 600;">YOU &bull; {timestamp}</div>
+                                {msg_content}
+                            </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(
+                            f"""
+                            <div class="msg-bubble-recv">
+                                <div style="font-size: 0.7rem; color: #8C5C55; margin-bottom: 4px; font-weight: 600;">{sender.upper()} &bull; {timestamp}</div>
+                                {msg_content}
+                            </div>
+                        """,
+                            unsafe_allow_html=True,
+                        )
 
-            chat_container = st.container(height=350)
-            with chat_container:
-                if not chat_history:
-                    st.write(
-                        f"No messages with {selected_recipient} yet. Permanent database archiving is active."
-                    )
-                else:
-                    for msg_id, sender, msg_content, timestamp in chat_history:
-                        if sender == st.session_state["user_name"]:
-                            st.markdown(
-                                f"""
-                                <div class="msg-bubble-sent">
-                                    <div style="font-size: 0.7rem; opacity: 0.85; margin-bottom: 4px; font-weight: 600;">YOU &bull; {timestamp}</div>
-                                    {msg_content}
-                                </div>
-                            """,
-                                unsafe_allow_html=True,
+                    if is_admin:
+                        if st.button(
+                            "🗑️ Delete Message", key=f"del_msg_{msg_id}"
+                        ):
+                            c.execute(
+                                "DELETE FROM messages WHERE id = ?", (msg_id,)
                             )
-                        else:
-                            st.markdown(
-                                f"""
-                                <div class="msg-bubble-recv">
-                                    <div style="font-size: 0.7rem; color: #8C5C55; margin-bottom: 4px; font-weight: 600;">{sender.upper()} &bull; {timestamp}</div>
-                                    {msg_content}
-                                </div>
-                            """,
-                                unsafe_allow_html=True,
-                            )
+                            conn.commit()
+                            st.rerun()
 
-                        if is_admin:
-                            if st.button(
-                                "🗑️ Delete Message", key=f"del_msg_{msg_id}"
-                            ):
-                                c.execute(
-                                    "DELETE FROM messages WHERE id = ?",
-                                    (msg_id,),
-                                )
-                                conn.commit()
-                                st.rerun()
+        # Manual Refresh & Send controls
+        col_ref1, col_ref2 = st.columns([1, 4])
+        with col_ref1:
+            if st.button("🔄 Refresh Chat"):
+                st.rerun()
 
         with st.form("send_msg_form", clear_on_submit=True):
             msg_text = st.text_input(
