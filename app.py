@@ -243,7 +243,7 @@ def save_orders(orders_list):
     st.cache_data.clear()
 
 def load_admin_config():
-    default_config = {"is_locked": False, "unlock_code": "1234"}
+    default_config = {"is_locked": False, "unlock_code": "1234", "lock_id": "1"}
     if os.path.exists(ADMIN_CONFIG_FILE):
         try:
             with open(ADMIN_CONFIG_FILE, "r") as f:
@@ -262,28 +262,30 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
     st.session_state.selected_order_id = None
 
-# Global Lock Check
+# Global Lock Check (Forces lock for everyone whenever app is locked)
 admin_config = load_admin_config()
-if admin_config.get("is_locked", False) and not st.session_state.get("user_unlocked", False):
-    st.markdown('<div class="momo-header">🔒 APP LOCKED 🔒</div>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="glass-card" style="text-align: center;">
-        <h3>The application is currently locked by the administrator.</h3>
-        <p>Please enter the unlock code to continue using Momo Fashion.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.form("unlock_form"):
-        entered_unlock_code = st.text_input("Enter Unlock Code", type="password")
-        unlock_submitted = st.form_submit_button("Unlock App")
-        if unlock_submitted:
-            if entered_unlock_code == admin_config.get("unlock_code", "1234"):
-                st.session_state.user_unlocked = True
-                st.success("App unlocked successfully!")
-                st.rerun()
-            else:
-                st.error("Incorrect unlock code. Please try again.")
-    st.stop()
+if admin_config.get("is_locked", False):
+    current_lock_id = admin_config.get("lock_id", "1")
+    if st.session_state.get("unlocked_lock_id") != current_lock_id:
+        st.markdown('<div class="momo-header">🔒 APP LOCKED 🔒</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="glass-card" style="text-align: center;">
+            <h3>The application is currently locked by the administrator.</h3>
+            <p>Please enter the unlock code to continue using Momo Fashion.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("unlock_form"):
+            entered_unlock_code = st.text_input("Enter Unlock Code", type="password")
+            unlock_submitted = st.form_submit_button("Unlock App")
+            if unlock_submitted:
+                if entered_unlock_code == admin_config.get("unlock_code", "1234"):
+                    st.session_state.unlocked_lock_id = current_lock_id
+                    st.success("App unlocked successfully!")
+                    st.rerun()
+                else:
+                    st.error("Incorrect unlock code. Please try again.")
+        st.stop()
 
 def trigger_confetti():
     components.html("""
@@ -691,6 +693,10 @@ else:
                 if admin_save_sub:
                     current_admin_config["is_locked"] = is_globally_locked
                     current_admin_config["unlock_code"] = new_unlock_code
+                    if is_globally_locked:
+                        current_admin_config["lock_id"] = str(datetime.datetime.now().timestamp())
+                    else:
+                        current_admin_config["lock_id"] = "1"
                     save_admin_config(current_admin_config)
                     st.success("Admin settings updated successfully!")
                     st.rerun()
