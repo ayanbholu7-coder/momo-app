@@ -28,7 +28,6 @@ st.markdown(
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* Cool Header Animation */
         .momo-header {
             text-align: center;
             font-size: 2.8rem;
@@ -42,7 +41,6 @@ st.markdown(
             text-shadow: 0 10px 30px rgba(255, 51, 133, 0.2);
         }
 
-        /* Glassmorphism Cards */
         .order-card {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
@@ -93,7 +91,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 2. Permanent Server-Side JSON Storage (Never Deletes Notes)
+# 2. Permanent Server-Side JSON Storage
 DB_FILE = "momo_persistent_orders.json"
 
 
@@ -115,8 +113,11 @@ def save_orders(orders_list):
 if "orders" not in st.session_state:
   st.session_state.orders = load_orders()
 
+if "selected_order_id" not in st.session_state:
+  st.session_state.selected_order_id = None
+
 # 3. Monthly Lock System (Triggers on 1st of the month)
-SECRET_CODE = "momo2026"  # Change this password whenever you want
+SECRET_CODE = "momo2026"
 now = datetime.datetime.now()
 current_month_year = f"{now.month}-{now.year}"
 
@@ -150,115 +151,158 @@ if needs_unlock:
       st.error("Incorrect code!")
   st.stop()
 
-# 4. Main App Interface with Big Title on Upper Area
-st.markdown('<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True)
+# 4. Routing: Detail Page vs Main List Page
+if st.session_state.selected_order_id is not None:
+  # Find the selected order
+  current_order = next(
+      (
+          o
+          for o in st.session_state.orders
+          if o["id"] == st.session_state.selected_order_id
+      ),
+      None,
+  )
 
-with st.expander("➕ Add New Order", expanded=False):
-  with st.form("order_form", clear_on_submit=True):
-    customer_name = st.text_input("Customer Name")
-    phone_number = st.text_input("Phone Number")
+  if current_order:
+    if st.button("← Back to Orders"):
+      st.session_state.selected_order_id = None
+      st.rerun()
 
     st.markdown(
-        "<p"
-        " style='margin-bottom:0px; font-weight:600; font-size:0.9rem;'>Due"
-        " Date</p>",
+        f'<div class="momo-header">✨ {current_order["name"]} ✨</div>',
         unsafe_allow_html=True,
     )
-    col1, col2, col3 = st.columns(3)
-    with col1:
-      months = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-      ]
-      month_val = st.selectbox(
-          "Month",
-          months,
-          index=now.month - 1,
-          label_visibility="collapsed",
-      )
-    with col2:
-      day_val = st.selectbox(
-          "Day", list(range(1, 32)), index=now.day - 1, label_visibility="collapsed"
-      )
-    with col3:
-      years = list(range(2024, 2035))
-      year_val = st.selectbox(
-          "Year",
-          years,
-          index=years.index(now.year),
-          label_visibility="collapsed",
-      )
 
-    order_notes = st.text_area("Measurements, design details, price...")
-
-    submitted = st.form_submit_button("Save Order")
-    if submitted:
-      if customer_name.strip() == "":
-        st.warning("Please enter a customer name.")
-      else:
-        month_index = months.index(month_val) + 1
-        formatted_date = f"{month_index:02d}/{day_val:02d}/{year_val}"
-        new_order = {
-            "id": str(datetime.datetime.now().timestamp()),
-            "name": customer_name,
-            "phone": phone_number,
-            "date": formatted_date,
-            "notes": order_notes,
-        }
-        st.session_state.orders.insert(0, new_order)
-        save_orders(st.session_state.orders)
-        st.success("Saved permanently!")
-        st.rerun()
-
-st.markdown("---")
-
-search_term = st.text_input(
-    "🔍 Search orders...", placeholder="Type name, phone, or notes..."
-).lower()
-
-filtered_orders = [
-    o
-    for o in st.session_state.orders
-    if search_term in o["name"].lower()
-    or search_term in o["phone"].lower()
-    or search_term in o["notes"].lower()
-]
-
-if not filtered_orders:
-  st.info("No orders found.")
-else:
-  for order in filtered_orders:
-    # Minimalist card showing ONLY Customer Name and Due Date, with expandable details
     st.markdown(
         f"""
-        <div class="order-card">
-            <h3 style="margin-bottom: 4px; color: #1a1a1a;">👤 {order['name']}</h3>
-            <p style="font-size: 0.9rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
+        <div class="order-card" style="padding: 25px;">
+            <p style="font-size: 1.1rem; margin-bottom: 15px;"><b>👤 Customer Name:</b> {current_order['name']}</p>
+            <p style="font-size: 1.1rem; margin-bottom: 15px;"><b>📞 Phone Number:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
+            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.1rem; margin-bottom: 5px;"><b>📝 Notes & Measurements:</b></p>
+            <div style="background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #ffb3d1; color: #333; font-size: 1rem; white-space: pre-wrap;">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Clickable expander for notes and phone details so it's clean and never deletes
-    with st.expander("📄 View Details & Notes"):
-      st.write(
-          f"**📞 Phone:** {order['phone'] if order['phone'] else 'None'}"
-      )
-      st.write(f"**📝 Notes:** {order['notes'] if order['notes'] else 'None'}")
-
-    if st.button("Delete Order", key=f"del_{order['id']}"):
+    if st.button("🗑️ Delete This Order"):
       st.session_state.orders = [
-          o for o in st.session_state.orders if o["id"] != order["id"]
+          o
+          for o in st.session_state.orders
+          if o["id"] != st.session_state.selected_order_id
       ]
       save_orders(st.session_state.orders)
+      st.session_state.selected_order_id = None
       st.rerun()
+  else:
+    st.session_state.selected_order_id = None
+    st.rerun()
+
+else:
+  # Main App Interface
+  st.markdown(
+      '<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True
+  )
+
+  with st.expander("➕ Add New Order", expanded=False):
+    with st.form("order_form", clear_on_submit=True):
+      customer_name = st.text_input("Customer Name")
+      phone_number = st.text_input("Phone Number")
+
+      st.markdown(
+          "<p"
+          " style='margin-bottom:0px; font-weight:600; font-size:0.9rem;'>Due"
+          " Date</p>",
+          unsafe_allow_html=True,
+      )
+      col1, col2, col3 = st.columns(3)
+      with col1:
+        months = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ]
+        month_val = st.selectbox(
+            "Month",
+            months,
+            index=now.month - 1,
+            label_visibility="collapsed",
+        )
+      with col2:
+        day_val = st.selectbox(
+            "Day",
+            list(range(1, 32)),
+            index=now.day - 1,
+            label_visibility="collapsed",
+        )
+      with col3:
+        years = list(range(2024, 2035))
+        year_val = st.selectbox(
+            "Year",
+            years,
+            index=years.index(now.year),
+            label_visibility="collapsed",
+        )
+
+      order_notes = st.text_area("Measurements, design details, price...")
+
+      submitted = st.form_submit_button("Save Order")
+      if submitted:
+        if customer_name.strip() == "":
+          st.warning("Please enter a customer name.")
+        else:
+          month_index = months.index(month_val) + 1
+          formatted_date = f"{month_index:02d}/{day_val:02d}/{year_val}"
+          new_order = {
+              "id": str(datetime.datetime.now().timestamp()),
+              "name": customer_name,
+              "phone": phone_number,
+              "date": formatted_date,
+              "notes": order_notes,
+          }
+          st.session_state.orders.insert(0, new_order)
+          save_orders(st.session_state.orders)
+          st.success("Saved permanently!")
+          st.rerun()
+
+  st.markdown("---")
+
+  search_term = st.text_input(
+      "🔍 Search orders...", placeholder="Type name, phone, or notes..."
+  ).lower()
+
+  filtered_orders = [
+      o
+      for o in st.session_state.orders
+      if search_term in o["name"].lower()
+      or search_term in o["phone"].lower()
+      or search_term in o["notes"].lower()
+  ]
+
+  if not filtered_orders:
+    st.info("No orders found.")
+  else:
+    for order in filtered_orders:
+      st.markdown(
+          f"""
+            <div class="order-card">
+                <h3 style="margin-bottom: 4px; color: #1a1a1a;">👤 {order['name']}</h3>
+                <p style="font-size: 0.9rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
+            </div>
+            """,
+          unsafe_allow_html=True,
+      )
+
+      if st.button("📄 View Details & Notes", key=f"view_{order['id']}"):
+        st.session_state.selected_order_id = order["id"]
+        st.rerun()
