@@ -959,16 +959,18 @@ else:
                         const badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
                         const shortId = String(o.id).slice(-6);
                         const phoneNum = cleanPhone(o.phone);
-                        const defaultText = `Hello ${o.name}, regarding your order at Momo Fashion due on ${o.date}: `;
-                        const waLink = phoneNum ? `https://wa.me/${phoneNum}?text=` + encodeURIComponent(defaultText) : '#';
+                        const customerNameSafe = o.name || 'Customer';
+                        const orderDateSafe = o.date || 'N/A';
+                        const defaultText = "Hello " + customerNameSafe + ", regarding your order at Momo Fashion due on " + orderDateSafe + ": ";
+                        const waLink = phoneNum ? "https://wa.me/" + phoneNum + "?text=" + encodeURIComponent(defaultText) : '#';
 
                         html += `
                             <div class="glass-card">
                                 <div class="card-header">
-                                    <h3 class="card-title">👤 ${o.name || 'Customer'} (ID: #${shortId})</h3>
+                                    <h3 class="card-title">👤 ${customerNameSafe} (ID: #${shortId})</h3>
                                     <span class="status-badge ${badgeClass}">${o.status || 'Pending'}</span>
                                 </div>
-                                <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${o.date || 'N/A'}</div>
+                                <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${orderDateSafe}</div>
                                 
                                 <div style="margin-bottom: 12px;">
                                     <div class="barcode-container">
