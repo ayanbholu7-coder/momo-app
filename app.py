@@ -3,7 +3,7 @@ import json
 import os
 import streamlit as st
 
-# 1. Page Setup & Minimalist Styling
+# 1. Page Setup & Cool AF Styling / Animations
 st.set_page_config(
     page_title="Momo Fashion", page_icon="✨", layout="centered"
 )
@@ -11,47 +11,89 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
         :root {
-            --bg-color: #fff5f7;
-            --card-bg: #ffffff;
-            --text-primary: #111111;
-            --text-secondary: #666666;
-            --accent-pink: #ff69b4;
-            --border-color: #ffd1dc;
+            --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe3ec 50%, #ffd1dc 100%);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --text-primary: #1a1a1a;
+            --accent-pink: #ff3385;
+            --accent-hover: #ff1a75;
+            --border-color: #ffb3d1;
         }
+
         .stApp {
-            background-color: var(--bg-color);
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        h1, h2, h3 {
-            color: var(--text-primary) !important;
+
+        /* Cool Header Animation */
+        .momo-header {
+            text-align: center;
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ff1a75, #ff66b2, #ff3385);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 25px;
+            letter-spacing: -1px;
+            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            text-shadow: 0 10px 30px rgba(255, 51, 133, 0.2);
         }
+
+        /* Glassmorphism Cards */
         .order-card {
             background: var(--card-bg);
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 12px;
-            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            margin-bottom: 16px;
+            box-shadow: 0 15px 35px rgba(255, 51, 133, 0.08);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        .order-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(255, 51, 133, 0.15);
+        }
+
         div.stButton > button {
-            background-color: var(--text-primary);
+            background: linear-gradient(135deg, #1a1a1a, #333333);
             color: white;
-            border-radius: 12px;
+            border-radius: 14px;
             font-weight: 600;
             border: none;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
+
         div.stButton > button:hover {
-            background-color: var(--accent-pink);
+            background: linear-gradient(135deg, #ff1a75, #ff3385);
             color: white;
+            transform: scale(1.02);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# 2. Permanent Server-Side JSON Storage
+# 2. Permanent Server-Side JSON Storage (Never Deletes Notes)
 DB_FILE = "momo_persistent_orders.json"
 
 
@@ -73,7 +115,7 @@ def save_orders(orders_list):
 if "orders" not in st.session_state:
   st.session_state.orders = load_orders()
 
-# 3. Monthly Lock System
+# 3. Monthly Lock System (Triggers on 1st of the month)
 SECRET_CODE = "momo2026"  # Change this password whenever you want
 now = datetime.datetime.now()
 current_month_year = f"{now.month}-{now.year}"
@@ -88,10 +130,13 @@ needs_unlock = (
 
 if needs_unlock:
   st.markdown("---")
-  st.markdown("<h2 style='text-align: center;'>🔒 App Locked</h2>", unsafe_allow_html=True)
+  st.markdown(
+      "<h2 style='text-align: center; color: #ff1a75;'>🔒 App Locked</h2>",
+      unsafe_allow_html=True,
+  )
   st.markdown(
       "<p style='text-align: center; color: #666;'>New billing cycle started."
-      " Enter code.</p>",
+      " Enter code to unlock.</p>",
       unsafe_allow_html=True,
   )
 
@@ -99,21 +144,20 @@ if needs_unlock:
   if st.button("Unlock App"):
     if entered_code == SECRET_CODE:
       st.session_state.unlocked_month = current_month_year
-      st.success("Unlocked!")
+      st.success("Unlocked successfully!")
       st.rerun()
     else:
       st.error("Incorrect code!")
   st.stop()
 
-# 4. Main App Interface
-st.title("✨ Momo Fashion")
+# 4. Main App Interface with Big Title on Upper Area
+st.markdown('<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True)
 
 with st.expander("➕ Add New Order", expanded=False):
   with st.form("order_form", clear_on_submit=True):
     customer_name = st.text_input("Customer Name")
     phone_number = st.text_input("Phone Number")
 
-    # Roblox-style sleek inline dropdown selectors for Month, Day, Year
     st.markdown(
         "<p"
         " style='margin-bottom:0px; font-weight:600; font-size:0.9rem;'>Due"
@@ -194,19 +238,25 @@ if not filtered_orders:
   st.info("No orders found.")
 else:
   for order in filtered_orders:
+    # Minimalist card showing ONLY Customer Name and Due Date, with expandable details
     st.markdown(
         f"""
         <div class="order-card">
-            <h3>{order['name']}</h3>
-            <p><b>📞 Phone:</b> {order['phone'] if order['phone'] else 'None'}</p>
-            <p><b>📝 Notes:</b> {order['notes'] if order['notes'] else 'None'}</p>
-            <p style="font-size: 0.85rem; color: #ff479b; margin-top: 8px;"><b>Due Date:</b> {order['date']}</p>
+            <h3 style="margin-bottom: 4px; color: #1a1a1a;">👤 {order['name']}</h3>
+            <p style="font-size: 0.9rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    if st.button("Delete", key=f"del_{order['id']}"):
+    # Clickable expander for notes and phone details so it's clean and never deletes
+    with st.expander("📄 View Details & Notes"):
+      st.write(
+          f"**📞 Phone:** {order['phone'] if order['phone'] else 'None'}"
+      )
+      st.write(f"**📝 Notes:** {order['notes'] if order['notes'] else 'None'}")
+
+    if st.button("Delete Order", key=f"del_{order['id']}"):
       st.session_state.orders = [
           o for o in st.session_state.orders if o["id"] != order["id"]
       ]
