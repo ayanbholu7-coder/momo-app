@@ -3,7 +3,7 @@ import json
 import os
 import streamlit as st
 
-# 1. Page Setup & Cool AF Styling / Animations
+# 1. Page Setup & Ultra-Sleek Interactive Animations
 st.set_page_config(
     page_title="Momo Fashion", page_icon="✨", layout="centered"
 )
@@ -26,39 +26,74 @@ st.markdown(
             background: var(--bg-gradient);
             background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', sans-serif;
+            animation: fadeInApp 0.8s ease-out;
         }
 
+        @keyframes fadeInApp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Animated Glowing Header */
         .momo-header {
             text-align: center;
-            font-size: 2.8rem;
+            font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(45deg, #ff1a75, #ff66b2, #ff3385);
+            background: linear-gradient(45deg, #ff1a75, #ff66b2, #ff3385, #ff1a75);
+            background-size: 300% 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 25px;
             letter-spacing: -1px;
-            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            text-shadow: 0 10px 30px rgba(255, 51, 133, 0.2);
+            animation: gradientShift 6s ease infinite, fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            text-shadow: 0 10px 30px rgba(255, 51, 133, 0.15);
         }
 
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Interactive Cards with Smooth Scale */
         .order-card {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 20px;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 22px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             margin-bottom: 16px;
             box-shadow: 0 15px 35px rgba(255, 51, 133, 0.08);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .order-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #ff1a75, #ff66b2);
+            opacity: 0.8;
+            transition: width 0.3s ease;
         }
 
         .order-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(255, 51, 133, 0.15);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 25px 50px rgba(255, 51, 133, 0.18);
+            background: rgba(255, 255, 255, 0.95);
         }
 
+        .order-card:hover::before {
+            width: 8px;
+        }
+
+        /* High-Impact Interactive Buttons */
         div.stButton > button {
             background: linear-gradient(135deg, #1a1a1a, #333333);
             color: white;
@@ -67,14 +102,30 @@ st.markdown(
             border: none;
             width: 100%;
             padding: 12px;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
         div.stButton > button:hover {
             background: linear-gradient(135deg, #ff1a75, #ff3385);
             color: white;
-            transform: scale(1.02);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(255, 51, 133, 0.3);
+        }
+
+        div.stButton > button:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        /* Detail Card Animation */
+        .detail-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid #ffb3d1;
+            box-shadow: 0 20px 45px rgba(255, 51, 133, 0.12);
+            animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeInDown {
@@ -85,6 +136,11 @@ st.markdown(
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 """,
@@ -132,7 +188,8 @@ needs_unlock = (
 if needs_unlock:
   st.markdown("---")
   st.markdown(
-      "<h2 style='text-align: center; color: #ff1a75;'>🔒 App Locked</h2>",
+      "<h2 style='text-align: center; color: #ff1a75; animation:"
+      " fadeInDown 0.5s ease;'>🔒 App Locked</h2>",
       unsafe_allow_html=True,
   )
   st.markdown(
@@ -153,7 +210,6 @@ if needs_unlock:
 
 # 4. Routing: Detail Page vs Main List Page
 if st.session_state.selected_order_id is not None:
-  # Find the selected order
   current_order = next(
       (
           o
@@ -175,17 +231,18 @@ if st.session_state.selected_order_id is not None:
 
     st.markdown(
         f"""
-        <div class="order-card" style="padding: 25px;">
-            <p style="font-size: 1.1rem; margin-bottom: 15px;"><b>👤 Customer Name:</b> {current_order['name']}</p>
-            <p style="font-size: 1.1rem; margin-bottom: 15px;"><b>📞 Phone Number:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
+        <div class="detail-card">
+            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #1a1a1a;"><b>👤 Customer Name:</b> {current_order['name']}</p>
+            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #1a1a1a;"><b>📞 Phone Number:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
             <p style="font-size: 1.1rem; margin-bottom: 15px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
-            <p style="font-size: 1.1rem; margin-bottom: 5px;"><b>📝 Notes & Measurements:</b></p>
-            <div style="background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #ffb3d1; color: #333; font-size: 1rem; white-space: pre-wrap;">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
+            <p style="font-size: 1.1rem; margin-bottom: 8px; color: #1a1a1a;"><b>📝 Notes & Measurements:</b></p>
+            <div style="background: rgba(255,255,255,0.8); padding: 18px; border-radius: 14px; border: 1px solid #ffd1dc; color: #333; font-size: 1rem; white-space: pre-wrap; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("🗑️ Delete This Order"):
       st.session_state.orders = [
           o
