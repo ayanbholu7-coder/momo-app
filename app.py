@@ -152,20 +152,27 @@ st.markdown(
         .status-fitting { background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }
         .status-completed { background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }
 
-        /* Animated Input Fields */
+        /* Animated Input Fields with Pink Text */
         input, textarea, select {
             font-size: 16px !important;
+            font-weight: 700 !important;
             border-radius: 14px !important;
             border: 2px solid rgba(255, 255, 255, 0.6) !important;
-            background: rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #ff1aff !important;
             transition: all 0.3s ease !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #ff66cc !important;
+            opacity: 0.8;
         }
 
         input:focus, textarea:focus, select:focus {
             border-color: #ffffff !important;
             box-shadow: 0 0 25px #ffffff, 0 0 0 3px rgba(255, 255, 255, 0.4) !important;
-            background: rgba(255, 255, 255, 0.3) !important;
+            background: #ffffff !important;
+            color: #ff1aff !important;
             transform: scale(1.01);
         }
 
@@ -232,6 +239,7 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
+
 # Trigger Confetti JavaScript helper via Streamlit components
 def trigger_confetti():
   components.html(
@@ -248,6 +256,7 @@ def trigger_confetti():
         """,
       height=0,
   )
+
 
 # 3. Monthly Lock System
 SECRET_CODE = "momo2026"
