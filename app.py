@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. Page Setup & Glowing Vibrant #F100FF 3D Styling
+# 1. Page Setup & Ultra-Bright Neon White/Pink 3D Glow Styling
 st.set_page_config(
     page_title="Momo Fashion",
     page_icon="✨",
@@ -19,22 +19,15 @@ st.markdown(
 
         :root {
             --vibrant-pink: #ff1aff;
-            --glass-bg: rgba(255, 255, 255, 0.88);
-            --glass-border: rgba(255, 26, 255, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.94);
+            --glass-border: rgba(255, 26, 255, 0.45);
             --text-main: #1f1f1f;
         }
 
         .stApp {
-            background: linear-gradient(-45deg, #250028, #3b0042, #1f0024, #2d0033);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background: linear-gradient(135deg, #ffffff 0%, #fff0fd 50%, #ffe6fe 100%);
+            background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
 
         /* 3D Floating Glowing Header */
@@ -45,17 +38,17 @@ st.markdown(
             color: #ff1aff;
             margin-bottom: 25px;
             letter-spacing: -1px;
-            text-shadow: 0 0 25px rgba(255, 26, 255, 0.8), 0 0 50px rgba(255, 26, 255, 0.4), 0 5px 15px rgba(0,0,0,0.5);
+            text-shadow: 0 0 25px rgba(255, 26, 255, 0.7), 0 0 45px rgba(255, 26, 255, 0.3), 0 4px 10px rgba(0,0,0,0.1);
             animation: float3D 4s ease-in-out infinite;
             transform-style: preserve-3d;
         }
 
         @keyframes float3D {
-            0%, 100% { transform: translateY(0px) rotateX(0deg); text-shadow: 0 0 25px rgba(255, 26, 255, 0.8), 0 5px 15px rgba(0,0,0,0.5); }
-            50% { transform: translateY(-8px) rotateX(4deg); text-shadow: 0 0 35px rgba(255, 26, 255, 1), 0 12px 25px rgba(0,0,0,0.7); }
+            0%, 100% { transform: translateY(0px) rotateX(0deg); text-shadow: 0 0 25px rgba(255, 26, 255, 0.7), 0 4px 10px rgba(0,0,0,0.1); }
+            50% { transform: translateY(-8px) rotateX(4deg); text-shadow: 0 0 35px rgba(255, 26, 255, 1), 0 10px 20px rgba(0,0,0,0.15); }
         }
 
-        /* 3D Glassmorphism Cards with Neon Glow */
+        /* 3D Glassmorphism Cards with Neon Glow on White Background */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(18px);
@@ -64,7 +57,7 @@ st.markdown(
             border-radius: 24px;
             padding: 22px;
             margin-bottom: 18px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 26, 255, 0.15);
+            box-shadow: 0 15px 35px rgba(255, 26, 255, 0.12), 0 0 20px rgba(255, 26, 255, 0.1);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
@@ -73,7 +66,7 @@ st.markdown(
 
         .glass-card:hover {
             transform: perspective(1000px) translateY(-6px) rotateX(2deg) translateZ(10px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 26, 255, 0.4);
+            box-shadow: 0 25px 50px rgba(255, 26, 255, 0.25), 0 0 35px rgba(255, 26, 255, 0.4);
             border-color: #ff1aff;
         }
 
@@ -85,31 +78,31 @@ st.markdown(
             width: 6px;
             height: 100%;
             background: #ff1aff;
-            box-shadow: 0 0 12px #ff1aff;
+            box-shadow: 0 0 15px #ff1aff;
         }
 
         /* 3D High-End Interactive Buttons with Glowing Animation */
         div.stButton > button {
-            background: #151515;
-            color: #ffffff;
+            background: #ffffff;
+            color: #1a1a1a;
             border-radius: 16px;
             font-weight: 700;
-            border: 1px solid rgba(255, 26, 255, 0.3);
+            border: 2px solid rgba(255, 26, 255, 0.4);
             width: 100%;
             padding: 14px;
             min-height: 52px;
             font-size: 1rem;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3), 0 0 10px rgba(255, 26, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(255, 26, 255, 0.15), 0 0 10px rgba(255, 26, 255, 0.1);
             transform: perspective(1000px) translateZ(0px);
         }
 
         div.stButton > button:hover {
             background: #ff1aff;
             color: #ffffff;
+            border-color: #ff1aff;
             transform: perspective(1000px) translateY(-4px) translateZ(15px);
-            box-shadow: 0 15px 35px rgba(255, 26, 255, 0.6), 0 0 25px rgba(255, 26, 255, 0.8);
-            border-color: #ffffff;
+            box-shadow: 0 15px 35px rgba(255, 26, 255, 0.5), 0 0 25px rgba(255, 26, 255, 0.8);
         }
 
         div.stButton > button:active {
@@ -136,25 +129,25 @@ st.markdown(
         input, textarea, select {
             font-size: 16px !important;
             border-radius: 14px !important;
-            border: 1px solid rgba(255, 26, 255, 0.3) !important;
+            border: 2px solid rgba(255, 26, 255, 0.3) !important;
             background: rgba(255, 255, 255, 0.95) !important;
             transition: all 0.25s ease !important;
         }
 
         input:focus, textarea:focus, select:focus {
             border-color: #ff1aff !important;
-            box-shadow: 0 0 15px rgba(255, 26, 255, 0.4), 0 0 0 3px rgba(255, 26, 255, 0.2) !important;
+            box-shadow: 0 0 20px rgba(255, 26, 255, 0.4), 0 0 0 3px rgba(255, 26, 255, 0.2) !important;
             background: #ffffff !important;
         }
 
         /* Seamless Modern 3D Tabs */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
-            background-color: rgba(30, 0, 35, 0.6);
+            background-color: rgba(255, 255, 255, 0.9);
             padding: 8px;
             border-radius: 20px;
             backdrop-filter: blur(15px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 15px rgba(255, 26, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(255, 26, 255, 0.15), inset 0 0 15px rgba(255, 26, 255, 0.1);
             border: 1px solid rgba(255, 26, 255, 0.3);
         }
 
@@ -162,7 +155,7 @@ st.markdown(
             height: 50px;
             border-radius: 14px;
             font-weight: 700;
-            color: #e0e0e0;
+            color: #444444;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -223,12 +216,12 @@ needs_unlock = (
 if needs_unlock:
   st.markdown("---")
   st.markdown(
-      "<h2 style='text-align: center; color: #ffffff; text-shadow: 0 0 15px"
+      "<h2 style='text-align: center; color: #1a1a1a; text-shadow: 0 0 15px"
       " #ff1aff;'>🔒 App Locked</h2>",
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #ddd;'>New billing cycle started."
+      "<p style='text-align: center; color: #555;'>New billing cycle started."
       " Enter code to unlock.</p>",
       unsafe_allow_html=True,
   )
@@ -292,8 +285,7 @@ if st.session_state.selected_order_id is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        "<h3 style='color: #ffffff; text-shadow: 0 0 10px #ff1aff;'>💰 Financial"
-        " Breakdown</h3>",
+        "<h3 style='color: #1a1a1a;'>💰 Financial Breakdown</h3>",
         unsafe_allow_html=True,
     )
     f_col1, f_col2, f_col3 = st.columns(3)
@@ -306,8 +298,7 @@ if st.session_state.selected_order_id is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        "<h3 style='color: #ffffff; text-shadow: 0 0 10px #ff1aff;'>📝 Notes &"
-        " Measurements</h3>",
+        "<h3 style='color: #1a1a1a;'>📝 Notes & Measurements</h3>",
         unsafe_allow_html=True,
     )
     st.info(
@@ -319,8 +310,8 @@ if st.session_state.selected_order_id is not None:
     img_path = current_order.get("image_path")
     if img_path and os.path.exists(img_path):
       st.markdown(
-          "<br><h3 style='color: #ffffff; text-shadow: 0 0 10px #ff1aff;"
-          " font-size: 1.1rem;'>📸 Design / Swatch Reference</h3>",
+          "<br><h3 style='color: #1a1a1a; font-size: 1.1rem;'>📸 Design /"
+          " Swatch Reference</h3>",
           unsafe_allow_html=True,
       )
       st.image(img_path, caption="Reference Photo", use_container_width=True)
@@ -524,8 +515,8 @@ else:
 
   with tab_calc:
     st.markdown(
-        "<h3 style='color: #ffffff; text-align: center; margin-bottom: 15px;"
-        " text-shadow: 0 0 10px #ff1aff;'>Momo Calculator</h3>",
+        "<h3 style='color: #1a1a1a; text-align: center; margin-bottom: 15px;"
+        " text-shadow: 0 0 10px rgba(255,26,255,0.4);'>Momo Calculator</h3>",
         unsafe_allow_html=True,
     )
 
@@ -548,12 +539,12 @@ else:
             .calc-box {
                 width: 100%;
                 max-width: 380px;
-                background: rgba(255, 255, 255, 0.9);
+                background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 padding: 22px;
                 border-radius: 28px;
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 26, 255, 0.25);
+                box-shadow: 0 20px 50px rgba(255, 26, 255, 0.2), 0 0 25px rgba(255, 26, 255, 0.15);
                 border: 1px solid rgba(255, 26, 255, 0.4);
                 transform: perspective(1000px) rotateX(2deg);
             }
@@ -577,28 +568,28 @@ else:
                 gap: 10px;
             }
             .calc-btn {
-                background: #1a1a1a;
-                color: #ffffff;
+                background: #ffffff;
+                color: #1a1a1a;
                 font-size: 1.25rem;
                 font-weight: 700;
                 border-radius: 16px;
                 min-height: 56px;
-                border: 1px solid rgba(255, 26, 255, 0.2);
+                border: 2px solid rgba(255, 26, 255, 0.3);
                 cursor: pointer;
                 transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 6px 15px rgba(0,0,0,0.2), 0 0 5px rgba(255, 26, 255, 0.1);
+                box-shadow: 0 6px 15px rgba(255, 26, 255, 0.1), 0 0 5px rgba(255, 26, 255, 0.1);
                 user-select: none;
                 transform: perspective(1000px) translateZ(0px);
             }
             .calc-btn:hover {
                 background: #ff1aff;
                 color: #ffffff;
-                border-color: #ffffff;
+                border-color: #ff1aff;
                 transform: perspective(1000px) translateY(-3px) translateZ(10px);
-                box-shadow: 0 10px 25px rgba(255, 26, 255, 0.6), 0 0 15px rgba(255, 26, 255, 0.8);
+                box-shadow: 0 10px 25px rgba(255, 26, 255, 0.5), 0 0 15px rgba(255, 26, 255, 0.8);
             }
             .calc-btn:active {
                 transform: scale(0.93) translateY(0);
