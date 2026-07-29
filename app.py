@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. Page Setup & Ultra-Bright Neon White/Pink 3D Glow Styling
+# 1. Page Setup & Ultra-Bright Neon White/Cyan 3D Glow Styling
 st.set_page_config(
     page_title="Momo Fashion",
     page_icon="✨",
@@ -30,7 +30,7 @@ st.markdown(
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* 3D Floating Glowing Header */
+        /* 3D Floating Glowing Header - Using exact image text style */
         .momo-header {
             text-align: center;
             font-size: clamp(2.4rem, 8vw, 3.4rem);
