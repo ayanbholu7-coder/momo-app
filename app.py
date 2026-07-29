@@ -52,7 +52,7 @@ st.markdown(
             100% { background-position: 0% 50%; }
         }
 
-        /* Touch-Friendly Cards without heavy paint blocks */
+        /* Touch-Friendly Cards */
         .order-card {
             background: var(--card-bg);
             backdrop-filter: blur(8px);
@@ -133,7 +133,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 2. Optimized Permanent Server-Side JSON Storage (Cached in Session State)
+# 2. Optimized Permanent Server-Side JSON Storage
 DB_FILE = "momo_persistent_orders.json"
 UPLOAD_DIR = "momo_uploads"
 if not os.path.exists(UPLOAD_DIR):
@@ -153,7 +153,7 @@ def load_orders_cached():
 
 def save_orders(orders_list):
   with open(DB_FILE, "w") as f:
-    json.dump(orders_list, f)  # Removed indent=4 for faster file writing
+    json.dump(orders_list, f)
   st.cache_data.clear()
 
 
@@ -231,6 +231,7 @@ if st.session_state.selected_order_id is not None:
         "Completed": "status-completed",
     }.get(status, "status-pending")
 
+    # FIXED: Used safe text components and Markdown rendering instead of broken raw HTML injection strings
     st.markdown(
         f"""
         <div class="detail-card">
@@ -240,34 +241,39 @@ if st.session_state.selected_order_id is not None:
             </div>
             <p style="font-size: 1rem; margin-bottom: 8px; color: #1a1a1a;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
             <p style="font-size: 1rem; margin-bottom: 12px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
-            
-            <hr style="border: 0; border-top: 1px solid #ffd1dc; margin: 12px 0;">
-            
-            <h4 style="color: #ff1a75; margin-bottom: 6px; font-size: 1.05rem;">💰 Financials</h4>
-            <div style="background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #ffd1dc; display: flex; justify-content: space-around; font-size: 0.95rem;">
-                <div><b>Total:</b> ${total_p:.2f}</div>
-                <div><b>Paid:</b> ${advance_p:.2f}</div>
-                <div><b>Left:</b> <span style="color: {'#d9534f' if remaining_p > 0 else '#5cb85c'};"><b>${remaining_p:.2f}</b></span></div>
-            </div>
-
-            <p style="font-size: 1rem; margin-bottom: 6px; color: #1a1a1a;"><b>📝 Notes & Measurements:</b></p>
-            <div style="background: rgba(255,255,255,0.8); padding: 12px; border-radius: 12px; border: 1px solid #ffd1dc; color: #333; font-size: 0.95rem; white-space: pre-wrap; margin-bottom: 15px;">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
+        </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 💰 Financials")
+    f_col1, f_col2, f_col3 = st.columns(3)
+    with f_col1:
+      st.metric("Total", f"${total_p:.2f}")
+    with f_col2:
+      st.metric("Paid", f"${advance_p:.2f}")
+    with f_col3:
+      st.metric("Left", f"${remaining_p:.2f}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("### 📝 Notes & Measurements")
+    st.info(
+        current_order["notes"]
+        if current_order["notes"]
+        else "No notes added."
     )
 
     img_path = current_order.get("image_path")
     if img_path and os.path.exists(img_path):
       st.markdown(
-          "<br><h4 style='color: #ff1a75; font-size: 1.05rem;'>📸 Design / Swatch"
-          " Reference</h4>",
+          "<br><h3 style='color: #ff1a75; font-size: 1.1rem;'>📸 Design /"
+          " Swatch Reference</h3>",
           unsafe_allow_html=True,
       )
       st.image(img_path, caption="Reference Photo", use_container_width=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
-
     if st.button("🗑️ Delete This Order"):
       if img_path and os.path.exists(img_path):
         try:
@@ -405,7 +411,6 @@ else:
       "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
   )
 
-  # Fast filtering using list comprehensions
   filtered_orders = [
       o
       for o in st.session_state.orders
