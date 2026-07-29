@@ -3,6 +3,7 @@ import streamlit.components.v1 as components
 import json
 import os
 import datetime
+import hashlib
 
 # 1. Page Setup & Animated Full Pink Theme
 st.set_page_config(
@@ -209,37 +210,29 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 2. Permanent Server-Side JSON Storage & Admin Config
-DB_FILE = "momo_persistent_orders.json"
+# 2. Multi-User Database & Admin Storage Setup
+USERS_DB_FILE = "momo_users_database.json"
 ADMIN_CONFIG_FILE = "momo_admin_config.json"
 UPLOAD_DIR = "momo_uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-@st.cache_data(ttl=10)
-def load_orders_cached():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r") as f:
-                data = json.load(f)
-                unique = {}
-                for o in data:
-                    if "id" in o:
-                        unique[o["id"]] = o
-                return list(unique.values())
-        except:
-            return []
-    return []
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-def save_orders(orders_list):
-    unique_orders = {}
-    for o in orders_list:
-        if "id" in o:
-            unique_orders[o["id"]] = o
-    cleaned_list = list(unique_orders.values())
-    
-    with open(DB_FILE, "w") as f:
-        json.dump(cleaned_list, f)
+@st.cache_data(ttl=5)
+def load_users_db():
+    if os.path.exists(USERS_DB_FILE):
+        try:
+            with open(USERS_DB_FILE, "r") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def save_users_db(users_data):
+    with open(USERS_DB_FILE, "w") as f:
+        json.dump(users_data, f)
     st.cache_data.clear()
 
 def load_admin_config():
@@ -256,13 +249,14 @@ def save_admin_config(config):
     with open(ADMIN_CONFIG_FILE, "w") as f:
         json.dump(config, f)
 
-if "orders" not in st.session_state:
-    st.session_state.orders = load_orders_cached()
+# Initialize Session State Variables
+if "logged_in_user" not in st.session_state:
+    st.session_state.logged_in_user = None
 
 if "selected_order_id" not in st.session_state:
     st.session_state.selected_order_id = None
 
-# Global Lock Check (Forces lock for everyone whenever app is locked)
+# Global Lock Check (App locks for everyone if enabled by admin)
 admin_config = load_admin_config()
 if admin_config.get("is_locked", False):
     current_lock_id = admin_config.get("lock_id", "1")
@@ -302,9 +296,76 @@ def trigger_confetti():
 
 now = datetime.datetime.now()
 
-# 3. Routing: Detail Page vs Main Dashboard
+# 3. Authentication Screen (Login / Sign Up) if not logged in
+if st.session_state.logged_in_user is None:
+    st.markdown('<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True)
+    
+    auth_tab1, auth_tab2 = st.tabs(["🔐 Login", "📝 Create Account"])
+    
+    users_db = load_users_db()
+    
+    with auth_tab1:
+        with st.form("login_form"):
+            login_user = st.text_input("Username").strip().lower()
+            login_pass = st.text_input("Password", type="password")
+            login_sub = st.form_submit_button("Log In")
+            
+            if login_sub:
+                if not login_user or not login_pass:
+                    st.warning("Please fill in all fields.")
+                elif login_user in users_db and users_db[login_user]["password"] == hash_password(login_pass):
+                    st.session_state.logged_in_user = login_user
+                    st.success("Logged in successfully!")
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password.")
+                    
+    with auth_tab2:
+        with st.form("signup_form"):
+            new_user = st.text_input("Choose Username").strip().lower()
+            new_pass = st.text_input("Choose Password", type="password")
+            signup_sub = st.form_submit_button("Sign Up")
+            
+            if signup_sub:
+                if not new_user or not new_pass:
+                    st.warning("Please fill in all fields.")
+                elif new_user in users_db:
+                    st.error("Username already exists. Please choose another or log in.")
+                else:
+                    users_db[new_user] = {
+                        "password": hash_password(new_pass),
+                        "orders": []
+                    }
+                    save_users_db(users_db)
+                    st.session_state.logged_in_user = new_user
+                    st.success("Account created and logged in successfully!")
+                    st.rerun()
+    st.stop()
+
+# 4. Main App Logic for Logged-In User
+current_user = st.session_state.logged_in_user
+users_db = load_users_db()
+
+if current_user not in users_db:
+    users_db[current_user] = {"password": "", "orders": []}
+
+user_orders = users_db[current_user]["orders"]
+
+def save_current_user_orders(updated_orders):
+    users_db[current_user]["orders"] = updated_orders
+    save_users_db(users_db)
+
+# Sidebar / Top Account Header & Logout
+with st.sidebar:
+    st.markdown(f"### 👤 Logged in as: `{current_user}`")
+    if st.button("🚪 Log Out"):
+        st.session_state.logged_in_user = None
+        st.session_state.selected_order_id = None
+        st.rerun()
+
+# 5. Routing: Detail Page vs Main Dashboard
 if st.session_state.selected_order_id is not None:
-    current_order = next((o for o in st.session_state.orders if o["id"] == st.session_state.selected_order_id), None)
+    current_order = next((o for o in user_orders if o["id"] == st.session_state.selected_order_id), None)
     
     if current_order:
         if st.button("← Back to Dashboard"):
@@ -344,7 +405,7 @@ if st.session_state.selected_order_id is not None:
         new_status_val = st.selectbox("Change Order Status", status_options, index=current_status_index, key=f"status_select_{current_order['id']}")
         if new_status_val != status:
             current_order["status"] = new_status_val
-            save_orders(st.session_state.orders)
+            save_current_user_orders(user_orders)
             st.success(f"Status updated to {new_status_val}!")
             st.rerun()
             
@@ -374,8 +435,8 @@ if st.session_state.selected_order_id is not None:
                     os.remove(img_path)
                 except:
                     pass
-            st.session_state.orders = [o for o in st.session_state.orders if o["id"] != st.session_state.selected_order_id]
-            save_orders(st.session_state.orders)
+            updated_list = [o for o in user_orders if o["id"] != st.session_state.selected_order_id]
+            save_current_user_orders(updated_list)
             st.session_state.selected_order_id = None
             st.rerun()
     else:
@@ -412,7 +473,7 @@ else:
                     years = list(range(2024, 2035))
                     year_val = st.selectbox("Year", years, index=years.index(now.year), label_visibility="collapsed")
                 
-                order_notes = st.text_area("Measurements, design details, notes (Phone number optional here)")
+                order_notes = st.text_area("Measurements, design details, notes")
                 uploaded_file = st.file_uploader("Upload Reference Photo / Swatch", type=["png", "jpg", "jpeg"])
                 
                 submitted = st.form_submit_button("Save Order")
@@ -443,8 +504,8 @@ else:
                             "status": order_status,
                             "image_path": saved_img_path
                         }
-                        st.session_state.orders.insert(0, new_order)
-                        save_orders(st.session_state.orders)
+                        user_orders.insert(0, new_order)
+                        save_current_user_orders(user_orders)
                         trigger_confetti()
                         st.success("Order saved successfully!")
                         st.rerun()
@@ -457,7 +518,7 @@ else:
         status_tab = st.radio("Filter Status", ["Pending", "In Progress", "Ready to Dispatch", "Completed"], horizontal=True)
 
         filtered_orders = []
-        for o in st.session_state.orders:
+        for o in user_orders:
             status_match = (o.get("status", "Pending")) == status_tab
             short_id = str(o.get("id", ""))[-6:]
             search_match = (
@@ -512,8 +573,8 @@ else:
                                     os.remove(img_path)
                                 except:
                                     pass
-                            st.session_state.orders = [item for item in st.session_state.orders if item["id"] != o["id"]]
-                            save_orders(st.session_state.orders)
+                            updated_list = [item for item in user_orders if item["id"] != o["id"]]
+                            save_current_user_orders(updated_list)
                             st.success("Order deleted successfully!")
                             st.rerun()
 
