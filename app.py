@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import streamlit as st
+import streamlit.components.v1 as components
 
 # 1. Page Setup & Ultra-Mobile-Responsive Glassmorphism Styling
 st.set_page_config(
@@ -37,7 +38,6 @@ st.markdown(
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Fixed letter spacing: tighter and normal padding */
         .momo-header {
             text-align: center;
             font-size: clamp(2rem, 7vw, 2.8rem);
@@ -58,7 +58,6 @@ st.markdown(
             100% { background-position: 0% 50%; }
         }
 
-        /* Butter-smooth card hover and entry animations */
         .order-card {
             background: var(--card-bg);
             backdrop-filter: blur(10px);
@@ -94,7 +93,6 @@ st.markdown(
             background: #ff1a75;
         }
 
-        /* High-Impact Touch Buttons with fluid micro-interactions */
         div.stButton > button {
             background: #1a1a1a;
             color: white;
@@ -120,26 +118,6 @@ st.markdown(
             transform: scale(0.96) translateY(0);
         }
 
-        /* Calculator Specific Button Styling & Layout Fix */
-        .calc-btn-container div.stButton > button {
-            background: #2a2a2a !important;
-            color: #ffffff !important;
-            font-size: 1.25rem !important;
-            font-weight: 700 !important;
-            border-radius: 14px !important;
-            min-height: 54px !important;
-            border: 1px solid rgba(255, 51, 133, 0.2) !important;
-            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        }
-
-        .calc-btn-container div.stButton > button:hover {
-            background: #ff1a75 !important;
-            border-color: #ff1a75 !important;
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 20px rgba(255, 26, 117, 0.3) !important;
-        }
-
-        /* Responsive Detail Card */
         .detail-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
@@ -155,7 +133,6 @@ st.markdown(
             to { opacity: 1; transform: scale(1); }
         }
 
-        /* Status Badge */
         .status-badge {
             display: inline-block;
             padding: 5px 12px;
@@ -182,7 +159,6 @@ st.markdown(
             box-shadow: 0 0 0 3px rgba(255, 51, 133, 0.15) !important;
         }
 
-        /* Custom Streamlit Tabs Styling for Smooth Feel */
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
             background-color: rgba(255, 255, 255, 0.6);
@@ -239,9 +215,6 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
-if "calc_input" not in st.session_state:
-  st.session_state.calc_input = "0"
-
 # 3. Monthly Lock System
 SECRET_CODE = "momo2026"
 now = datetime.datetime.now()
@@ -278,32 +251,7 @@ if needs_unlock:
   st.stop()
 
 
-# 4. Calculator Action Handler via Callbacks
-def press_calc(val):
-  current = st.session_state.calc_input
-  if val == "C":
-    st.session_state.calc_input = "0"
-  elif val == "⌫":
-    st.session_state.calc_input = current[:-1] if len(current) > 1 else "0"
-  elif val == "=":
-    try:
-      # Safe evaluation of basic math expression
-      allowed_chars = set("0123456789+-*. /")
-      if all(c in allowed_chars for c in current):
-        res = eval(current)
-        st.session_state.calc_input = str(res)
-      else:
-        st.session_state.calc_input = "Error"
-    except Exception:
-      st.session_state.calc_input = "Error"
-  else:
-    if current == "0" or current == "Error":
-      st.session_state.calc_input = val
-    else:
-      st.session_state.calc_input += val
-
-
-# 5. Routing: Detail Page vs Main Tabs Interface
+# 4. Routing: Detail Page vs Main Tabs Interface
 if st.session_state.selected_order_id is not None:
   current_order = next(
       (
@@ -580,32 +528,135 @@ else:
         " 15px;'>Momo Calculator</h3>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        f"""
-        <div style="background: #1a1a1a; color: #fff; padding: 18px; border-radius: 16px; font-size: 2rem; text-align: right; font-weight: 700; margin-bottom: 15px; word-break: break-all; box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);">
-            {st.session_state.calc_input}
-        </div>
+
+    # Ultra-low latency client-side calculator component (Zero server round-trip delay ~0ms)
+    components.html(
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <style>
+            body {
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                background: transparent;
+                margin: 0;
+                padding: 5px;
+            }
+            .calc-box {
+                max-width: 380px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.4);
+                padding: 14px;
+                border-radius: 20px;
+                box-shadow: 0 8px 30px rgba(255, 51, 133, 0.06);
+            }
+            .calc-screen {
+                background: #1a1a1a;
+                color: #fff;
+                padding: 16px 20px;
+                border-radius: 16px;
+                font-size: 2.2rem;
+                text-align: right;
+                font-weight: 700;
+                margin-bottom: 14px;
+                word-break: break-all;
+                box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+                letter-spacing: 1px;
+                min-height: 50px;
+            }
+            .calc-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+            .calc-btn {
+                background: #2a2a2a;
+                color: #ffffff;
+                font-size: 1.25rem;
+                font-weight: 700;
+                border-radius: 14px;
+                min-height: 54px;
+                border: 1px solid rgba(255, 51, 133, 0.2);
+                cursor: pointer;
+                transition: transform 0.08s ease, background 0.08s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                user-select: none;
+            }
+            .calc-btn:hover {
+                background: #ff1a75;
+                border-color: #ff1a75;
+            }
+            .calc-btn:active {
+                transform: scale(0.94);
+                background: #ff1a75;
+            }
+            .span-2 {
+                grid-column: span 2;
+            }
+        </style>
+        </head>
+        <body>
+            <div class="calc-box">
+                <div id="screen" class="calc-screen">0</div>
+                <div class="calc-grid">
+                    <button class="calc-btn" onclick="press('C')">C</button>
+                    <button class="calc-btn" onclick="press('⌫')">⌫</button>
+                    <button class="calc-btn" onclick="press('/')">/</button>
+                    <button class="calc-btn" onclick="press('*')">*</button>
+                    
+                    <button class="calc-btn" onclick="press('7')">7</button>
+                    <button class="calc-btn" onclick="press('8')">8</button>
+                    <button class="calc-btn" onclick="press('9')">9</button>
+                    <button class="calc-btn" onclick="press('-')">-</button>
+                    
+                    <button class="calc-btn" onclick="press('4')">4</button>
+                    <button class="calc-btn" onclick="press('5')">5</button>
+                    <button class="calc-btn" onclick="press('6')">6</button>
+                    <button class="calc-btn" onclick="press('+')">+</button>
+                    
+                    <button class="calc-btn" onclick="press('1')">1</button>
+                    <button class="calc-btn" onclick="press('2')">2</button>
+                    <button class="calc-btn" onclick="press('3')">3</button>
+                    <button class="calc-btn" onclick="press('=')">=</button>
+                    
+                    <button class="calc-btn span-2" onclick="press('0')">0</button>
+                    <button class="calc-btn span-2" onclick="press('.')">.</button>
+                </div>
+            </div>
+
+            <script>
+                let currentVal = "0";
+                const screen = document.getElementById("screen");
+
+                function press(val) {
+                    if (val === 'C') {
+                        currentVal = "0";
+                    } else if (val === '⌫') {
+                        currentVal = currentVal.length > 1 ? currentVal.slice(0, -1) : "0";
+                    } else if (val === '=') {
+                        try {
+                            // Sanitized immediate evaluation
+                            let sanitized = currentVal.replace(/×/g, '*').replace(/÷/g, '/');
+                            let result = eval(sanitized);
+                            currentVal = String(result);
+                        } catch (e) {
+                            currentVal = "Error";
+                        }
+                    } else {
+                        if (currentVal === "0" || currentVal === "Error") {
+                            currentVal = val;
+                        } else {
+                            currentVal += val;
+                        }
+                    }
+                    screen.innerText = currentVal;
+                }
+            </script>
+        </body>
+        </html>
         """,
-        unsafe_allow_html=True,
+        height=380,
     )
-
-    c_rows = [
-        ["C", "⌫", "/", "*"],
-        ["7", "8", "9", "-"],
-        ["4", "5", "6", "+"],
-        ["1", "2", "3", "="],
-        ["0", "."],
-    ]
-
-    st.markdown('<div class="calc-btn-container">', unsafe_allow_html=True)
-    for row in c_rows:
-      cols = st.columns(len(row))
-      for idx, btn_label in enumerate(row):
-        with cols[idx]:
-          st.button(
-              btn_label,
-              key=f"calc_key_{btn_label}_{idx}",
-              on_click=press_calc,
-              args=(btn_label,),
-          )
-    st.markdown("</div>", unsafe_allow_html=True)
