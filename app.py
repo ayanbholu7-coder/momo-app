@@ -851,15 +851,15 @@ else:
             <div id="ordersContainer"></div>
 
             <script>
-                let serverOrders = {orders_json_string};
-                let storageKey = "momo_permanent_client_orders_v1";
-                let autoWaEnabled = {auto_wa_flag};
+                const serverOrders = {orders_json_string};
+                const storageKey = "momo_permanent_client_orders_v1";
+                const autoWaEnabled = {auto_wa_flag};
                 
                 function getOrders() {{
-                    let localData = localStorage.getItem(storageKey);
+                    const localData = localStorage.getItem(storageKey);
                     if (localData) {{
                         try {{
-                            let parsed = JSON.parse(localData);
+                            const parsed = JSON.parse(localData);
                             if (Array.isArray(parsed) && parsed.length >= serverOrders.length) {{
                                 return parsed;
                             }}
@@ -875,8 +875,8 @@ else:
                 function switchTab(tabName) {{
                     currentTab = tabName;
                     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    let activeBtnId = 'tab_' + tabName.replace(/ /g, '_');
-                    let targetBtn = document.getElementById(activeBtnId);
+                    const activeBtnId = 'tab_' + tabName.replace(/ /g, '_');
+                    const targetBtn = document.getElementById(activeBtnId);
                     if (targetBtn) targetBtn.classList.add('active');
                     renderOrders();
                 }}
@@ -887,7 +887,7 @@ else:
                 }}
 
                 function updateOrderField(id, field, value) {{
-                    let idx = orders.findIndex(o => o.id === id);
+                    const idx = orders.findIndex(o => o.id === id);
                     if (idx !== -1) {{
                         orders[idx][field] = value;
                         localStorage.setItem(storageKey, JSON.stringify(orders));
@@ -895,18 +895,18 @@ else:
                 }}
 
                 function saveNoteAndStatus(id) {{
-                    let noteEl = document.getElementById('note_' + id);
-                    let statusEl = document.getElementById('status_' + id);
+                    const noteEl = document.getElementById('note_' + id);
+                    const statusEl = document.getElementById('status_' + id);
                     if (noteEl && statusEl) {{
-                        let idx = orders.findIndex(o => o.id === id);
+                        const idx = orders.findIndex(o => o.id === id);
                         if (idx !== -1) {{
-                            let newStatus = statusEl.value;
+                            const newStatus = statusEl.value;
                             
                             orders[idx].notes = noteEl.value;
                             orders[idx].status = newStatus;
                             localStorage.setItem(storageKey, JSON.stringify(orders));
 
-                            let phoneNum = cleanPhone(orders[idx].phone);
+                            const phoneNum = cleanPhone(orders[idx].phone);
                             if (autoWaEnabled && newStatus !== "Pending" && phoneNum) {{
                                 let msg = `Your Order Is Ready to Dispatch! Hi ${{orders[idx].name}}, your order status is now *${{newStatus}}* (Due: ${{orders[idx].date}}). Thank you for choosing Momo Fashion! ✨`;
                                 if (newStatus === "Completed") {{
@@ -923,14 +923,14 @@ else:
                 }}
 
                 function renderOrders() {{
-                    let search = document.getElementById('searchInput').value.toLowerCase();
-                    let sort = document.getElementById('sortSelect').value;
-                    let container = document.getElementById('ordersContainer');
+                    const search = document.getElementById('searchInput').value.toLowerCase();
+                    const sort = document.getElementById('sortSelect').value;
+                    const container = document.getElementById('ordersContainer');
 
-                    let filtered = orders.filter(o => {{
-                        let matchesTab = (o.status || "Pending") === currentTab;
-                        let shortId = String(o.id).slice(-6);
-                        let matchesSearch = (o.name || "").toLowerCase().includes(search) ||
+                    const filtered = orders.filter(o => {{
+                        const matchesTab = (o.status || "Pending") === currentTab;
+                        const shortId = String(o.id).slice(-6);
+                        const matchesSearch = (o.name || "").toLowerCase().includes(search) ||
                                           (o.phone || "").toLowerCase().includes(search) ||
                                           (o.notes || "").toLowerCase().includes(search) ||
                                           shortId.includes(search);
@@ -939,8 +939,8 @@ else:
 
                     filtered.sort((a, b) => {{
                         if (sort === 'due') {{
-                            let dateA = new Date(a.date || '01/01/2026');
-                            let dateB = new Date(b.date || '01/01/2026');
+                            const dateA = new Date(a.date || '01/01/2026');
+                            const dateB = new Date(b.date || '01/01/2026');
                             return dateA - dateB;
                         }} else if (sort === 'newest') {{
                             return parseFloat(b.id || 0) - parseFloat(a.id || 0);
@@ -956,35 +956,36 @@ else:
 
                     let html = '';
                     filtered.forEach(o => {{
-                        let badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
-                        let shortId = String(o.id).slice(-6);
-                        let phoneNum = cleanPhone(o.phone);
-                        let waLink = phoneNum ? `https://wa.me/${{phoneNum}}?text=` + encodeURIComponent(`Hello ${o.name}, regarding your order at Momo Fashion due on ${o.date}: `) : '#';
+                        const badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
+                        const shortId = String(o.id).slice(-6);
+                        const phoneNum = cleanPhone(o.phone);
+                        const defaultText = `Hello ${o.name}, regarding your order at Momo Fashion due on ${o.date}: `;
+                        const waLink = phoneNum ? `https://wa.me/${phoneNum}?text=` + encodeURIComponent(defaultText) : '#';
 
                         html += `
                             <div class="glass-card">
                                 <div class="card-header">
-                                    <h3 class="card-title">👤 ${{o.name || 'Customer'}} (ID: #${{shortId}})</h3>
-                                    <span class="status-badge ${{badgeClass}}">${{o.status || 'Pending'}}</span>
+                                    <h3 class="card-title">👤 ${o.name || 'Customer'} (ID: #${shortId})</h3>
+                                    <span class="status-badge ${badgeClass}">${o.status || 'Pending'}</span>
                                 </div>
-                                <div class="meta-text">📞 Phone: ${{o.phone || 'None'}} &nbsp;|&nbsp; 📅 Due Date: ${{o.date || 'N/A'}}</div>
+                                <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${o.date || 'N/A'}</div>
                                 
                                 <div style="margin-bottom: 12px;">
                                     <div class="barcode-container">
-                                        <svg id="barcode_${{o.id}}"></svg>
+                                        <svg id="barcode_${o.id}"></svg>
                                     </div>
                                 </div>
 
-                                <textarea id="note_${{o.id}}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${{o.id}}', 'notes', this.value)">${{o.notes || ''}}</textarea>
+                                <textarea id="note_${o.id}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${o.id}', 'notes', this.value)">${o.notes || ''}</textarea>
                                 <div class="action-row">
-                                    <select id="status_${{o.id}}" class="action-select" onchange="updateOrderField('${{o.id}}', 'status', this.value)">
-                                        <option value="Pending" ${{o.status === 'Pending' ? 'selected' : ''}}>⏳ Pending</option>
-                                        <option value="In Progress" ${{o.status === 'In Progress' ? 'selected' : ''}}>🚀 In Progress</option>
-                                        <option value="Ready to Dispatch" ${{o.status === 'Ready to Dispatch' ? 'selected' : ''}}>📦 Ready to Dispatch</option>
-                                        <option value="Completed" ${{o.status === 'Completed' ? 'selected' : ''}}>✅ Completed</option>
+                                    <select id="status_${o.id}" class="action-select" onchange="updateOrderField('${o.id}', 'status', this.value)">
+                                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                                        <option value="In Progress" ${o.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
+                                        <option value="Ready to Dispatch" ${o.status === 'Ready to Dispatch' ? 'selected' : ''}>📦 Ready to Dispatch</option>
+                                        <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
                                     </select>
-                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${{o.id}}')">💾 Save Note & Status</button>
-                                    ${{phoneNum ? `<a href="${{waLink}}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}}
+                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
+                                    ${phoneNum ? `<a href="${waLink}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}
                                 </div>
                             </div>
                         `;
@@ -992,7 +993,7 @@ else:
                     container.innerHTML = html;
 
                     filtered.forEach(o => {{
-                        let shortId = String(o.id).slice(-6);
+                        const shortId = String(o.id).slice(-6);
                         try {{
                             JsBarcode("#barcode_" + o.id, shortId, {{
                                 format: "CODE128",
