@@ -37,7 +37,7 @@ st.markdown(
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Fixed letter spacing and smooth header gradient animation */
+        /* Fixed letter spacing: tighter and normal padding */
         .momo-header {
             text-align: center;
             font-size: clamp(2rem, 7vw, 2.8rem);
@@ -118,6 +118,25 @@ st.markdown(
 
         div.stButton > button:active {
             transform: scale(0.96) translateY(0);
+        }
+
+        /* Calculator Specific Button Styling & Layout Fix */
+        .calc-btn-container div.stButton > button {
+            background: #2a2a2a !important;
+            color: #ffffff !important;
+            font-size: 1.25rem !important;
+            font-weight: 700 !important;
+            border-radius: 14px !important;
+            min-height: 54px !important;
+            border: 1px solid rgba(255, 51, 133, 0.2) !important;
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+
+        .calc-btn-container div.stButton > button:hover {
+            background: #ff1a75 !important;
+            border-color: #ff1a75 !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 26, 117, 0.3) !important;
         }
 
         /* Responsive Detail Card */
@@ -258,7 +277,33 @@ if needs_unlock:
       st.error("Incorrect code!")
   st.stop()
 
-# 4. Routing: Detail Page vs Main Tabs Interface
+
+# 4. Calculator Action Handler via Callbacks
+def press_calc(val):
+  current = st.session_state.calc_input
+  if val == "C":
+    st.session_state.calc_input = "0"
+  elif val == "⌫":
+    st.session_state.calc_input = current[:-1] if len(current) > 1 else "0"
+  elif val == "=":
+    try:
+      # Safe evaluation of basic math expression
+      allowed_chars = set("0123456789+-*. /")
+      if all(c in allowed_chars for c in current):
+        res = eval(current)
+        st.session_state.calc_input = str(res)
+      else:
+        st.session_state.calc_input = "Error"
+    except Exception:
+      st.session_state.calc_input = "Error"
+  else:
+    if current == "0" or current == "Error":
+      st.session_state.calc_input = val
+    else:
+      st.session_state.calc_input += val
+
+
+# 5. Routing: Detail Page vs Main Tabs Interface
 if st.session_state.selected_order_id is not None:
   current_order = next(
       (
@@ -353,7 +398,7 @@ if st.session_state.selected_order_id is not None:
 
 else:
   st.markdown(
-      '<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True
+      '<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True
   )
 
   # Top-Level Tabs for Orders Management vs Calculator
@@ -544,30 +589,6 @@ else:
         unsafe_allow_html=True,
     )
 
-
-    def handle_calc(val):
-      current = st.session_state.calc_input
-      if val == "C":
-        st.session_state.calc_input = "0"
-      elif val == "⌫":
-        st.session_state.calc_input = current[:-1] if len(current) > 1 else "0"
-      elif val == "=":
-        try:
-          allowed_chars = set("0123456789+-*. /")
-          if all(c in allowed_chars for c in current):
-            res = eval(current)
-            st.session_state.calc_input = str(res)
-          else:
-            st.session_state.calc_input = "Error"
-        except:
-          st.session_state.calc_input = "Error"
-      else:
-        if current == "0" or current == "Error":
-          st.session_state.calc_input = val
-        else:
-          st.session_state.calc_input += val
-
-
     c_rows = [
         ["C", "⌫", "/", "*"],
         ["7", "8", "9", "-"],
@@ -576,12 +597,15 @@ else:
         ["0", "."],
     ]
 
+    st.markdown('<div class="calc-btn-container">', unsafe_allow_html=True)
     for row in c_rows:
       cols = st.columns(len(row))
       for idx, btn_label in enumerate(row):
         with cols[idx]:
-          if st.button(
-              btn_label, key=f"tab_calc_btn_{btn_label}_{idx}_{os.urandom(2)}"
-          ):
-            handle_calc(btn_label)
-            st.rerun()
+          st.button(
+              btn_label,
+              key=f"calc_key_{btn_label}_{idx}",
+              on_click=press_calc,
+              args=(btn_label,),
+          )
+    st.markdown("</div>", unsafe_allow_html=True)
