@@ -38,7 +38,6 @@ st.markdown(
             100% { background-position: 0% 50%; }
         }
 
-        /* Continuous Bouncing & Floating Animations for Everything */
         @keyframes floatBounce {
             0%, 100% { transform: translateY(0px) rotateX(0deg); }
             50% { transform: translateY(-10px) rotateX(3deg); }
@@ -49,7 +48,6 @@ st.markdown(
             50% { text-shadow: 0 0 20px #ffffff, 0 0 30px #ffffff, 0 0 50px #ffffff; }
         }
 
-        /* Animated Title Header */
         .momo-header {
             text-align: center;
             font-size: clamp(2.5rem, 8vw, 3.6rem);
@@ -61,7 +59,6 @@ st.markdown(
             animation: floatBounce 3s ease-in-out infinite, pulseGlow 2s ease-in-out infinite;
         }
 
-        /* Typography */
         h1, h2, h3, h4, h5, h6, label, .stMarkdown p, span {
             color: #ffffff;
         }
@@ -71,7 +68,6 @@ st.markdown(
             animation: floatBounce 4s ease-in-out infinite;
         }
 
-        /* Animated Glass Cards */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -105,7 +101,6 @@ st.markdown(
             animation: pulseGlow 2s infinite;
         }
 
-        /* Animated Buttons */
         div.stButton > button {
             background: rgba(255, 255, 255, 0.2);
             color: #ffffff;
@@ -131,11 +126,6 @@ st.markdown(
             text-shadow: none;
         }
 
-        div.stButton > button:active {
-            transform: scale(0.95);
-        }
-
-        /* Specific Styling for Form Submit Button ("Save Order") with Pink Text */
         div[data-testid="stFormSubmitButton"] > button {
             background: rgba(255, 255, 255, 0.9) !important;
             color: #ff1aff !important;
@@ -151,7 +141,6 @@ st.markdown(
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 35px #ff1aff !important;
         }
 
-        /* Status Badges with Pulse */
         .status-badge {
             display: inline-block;
             padding: 6px 14px;
@@ -168,7 +157,6 @@ st.markdown(
         .status-dispatch { background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }
         .status-completed { background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }
 
-        /* Animated Input Fields with Pink Text */
         input, textarea, select {
             font-size: 16px !important;
             font-weight: 700 !important;
@@ -192,7 +180,6 @@ st.markdown(
             transform: scale(1.01);
         }
 
-        /* Animated Tabs */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
             background-color: rgba(255, 255, 255, 0.2);
@@ -255,8 +242,11 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
+# Global WhatsApp automation toggle state
+if "auto_whatsapp" not in st.session_state:
+  st.session_state.auto_whatsapp = True
 
-# Trigger Confetti JavaScript helper via Streamlit components
+
 def trigger_confetti():
   components.html(
       """
@@ -268,6 +258,31 @@ def trigger_confetti():
                 origin: { y: 0.6 },
                 colors: ['#ffffff', '#ff1aff', '#ff66cc', '#ff99ff']
             });
+        </script>
+        """,
+      height=0,
+  )
+
+
+# Helper to format clean phone numbers for WhatsApp URL scheme
+def clean_phone(phone_str):
+  if not phone_str:
+    return ""
+  digits = "".join(filter(str.isdigit, phone_str))
+  return digits
+
+
+# Trigger automatic WhatsApp tab open via JavaScript if enabled and status changed
+def trigger_whatsapp_popup(phone, message):
+  clean_num = clean_phone(phone)
+  if not clean_num:
+    return
+  encoded_msg = message.replace(" ", "%20").replace("\n", "%0A")
+  wa_url = f"https://wa.me/{clean_num}?text={encoded_msg}"
+  components.html(
+      f"""
+        <script>
+            window.open("{wa_url}", "_blank");
         </script>
         """,
       height=0,
@@ -344,6 +359,9 @@ if st.session_state.selected_order_id is not None:
         "Completed": "status-completed",
     }.get(status, "status-pending")
 
+    phone_val = current_order.get("phone", "")
+    clean_num = clean_phone(phone_val)
+
     st.markdown(
         f"""
         <div class="glass-card">
@@ -351,15 +369,48 @@ if st.session_state.selected_order_id is not None:
                 <h3 style="margin:0; color: #ffffff; font-size: 1.3rem;">👤 {current_order['name']}</h3>
                 <span class="status-badge {status_class}">{status}</span>
             </div>
-            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>📞 Phone:</b> {phone_val if phone_val else 'None'}</p>
             <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ffffff; text-shadow: 0 0 10px #ffffff;"><b>📅 Due Date:</b> {current_order['date']}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
+    # WhatsApp Direct Action Buttons on Detail Page
+    if clean_num:
+      st.markdown(
+          "<h3 style='color: #ffffff; font-size: 1.1rem;'>💬 Quick WhatsApp"
+          " Actions</h3>",
+          unsafe_allow_html=True,
+      }
+      wa_col1, wa_col2 = st.columns(2)
+      with wa_col1:
+        custom_msg = f"Hello {current_order['name']}, regarding your order at Momo Fashion due on {current_order['date']}: "
+        wa_link = f"https://wa.me/{clean_num}?text={custom_msg.replace(' ', '%20')}"
+        st.markdown(
+            f'<a href="{wa_link}" target="_blank"><button'
+            ' style="background: rgba(37, 211, 102, 0.3); color: #ffffff;'
+            " border: 2px solid #25D366; border-radius: 14px; padding: 12px;"
+            " font-weight: 700; width: 100%; text-align: center; display:"
+            ' block; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2);'
+            ' text-shadow: 0 0 8px #ffffff;">🟢 Chat on WhatsApp</button></a>',
+            unsafe_allow_html=True,
+        )
+      with wa_col2:
+        status_msg = f"Hi {current_order['name']}, your order status has been updated to: *{status}*. Thank you for choosing Momo Fashion!"
+        ready_link = f"https://wa.me/{clean_num}?text={status_msg.replace(' ', '%20').replace(chr(10), '%0A')}"
+        st.markdown(
+            f'<a href="{ready_link}" target="_blank"><button'
+            ' style="background: rgba(255, 255, 255, 0.9); color: #ff1aff;'
+            " border: 2px solid #ffffff; border-radius: 14px; padding: 12px;"
+            " font-weight: 700; width: 100%; text-align: center; display:"
+            ' block; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2);'
+            ' text-shadow: none;">🚀 Send Status Message</button></a>',
+            unsafe_allow_html=True,
+        )
+      st.markdown("<br>", unsafe_allow_html=True)
+
     # Quick Status Update selector on Details Page
-    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         "<h3 style='color: #ffffff;'>⚡ Update Status</h3>",
         unsafe_allow_html=True,
@@ -380,8 +431,23 @@ if st.session_state.selected_order_id is not None:
         key=f"status_select_{current_order['id']}",
     )
     if new_status_val != status:
+      old_status = status
       current_order["status"] = new_status_val
       save_orders(st.session_state.orders)
+
+      # Trigger auto WhatsApp notification if enabled and status is non-Pending
+      if (
+          st.session_state.auto_whatsapp
+          and new_status_val != "Pending"
+          and clean_num
+      ):
+        msg = f"Your Order Is Ready to Dispatch! Hi {current_order['name']}, your order status is now *{new_status_val}* (Due: {current_order['date']}). Thank you for choosing Momo Fashion! ✨"
+        if new_status_val == "Completed":
+          msg = f"Your Order Is Completed! Hi {current_order['name']}, your order is ready for pickup/delivery. Thank you for choosing Momo Fashion! ✨"
+        elif new_status_val == "In Progress":
+          msg = f"Hi {current_order['name']}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨"
+        trigger_whatsapp_popup(phone_val, msg)
+
       st.success(f"Status updated to {new_status_val}!")
       st.rerun()
 
@@ -442,6 +508,29 @@ else:
       '<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True
   )
 
+  # Top Settings Bar for Automated WhatsApp Notification Toggle & Barcode info
+  with st.expander("⚙️ WhatsApp Automation Settings & Quick Info", expanded=False):
+    st.markdown(
+        "<p style='color: #ffffff; font-weight: 600;'>Configure automated"
+        " WhatsApp messaging when order status changes away from Pending.</p>",
+        unsafe_allow_html=True,
+    )
+    st.session_state.auto_whatsapp = st.checkbox(
+        "Enable Automatic WhatsApp Status Messages",
+        value=st.session_state.auto_whatsapp,
+    )
+    if st.session_state.auto_whatsapp:
+      st.success(
+          "Auto-messaging is active: changing status to 'In Progress',"
+            " 'Ready to Dispatch', or 'Completed' will prompt WhatsApp"
+            " instantly."
+      )
+    else:
+      st.warning(
+          "Auto-messaging is disabled. You can still message customers manually"
+          " via chat buttons."
+      )
+
   # Top-Level Tabs for Orders Management vs Calculator
   tab_orders, tab_calc = st.tabs(["🛍️ Orders & Management", "🧮 Calculator"])
 
@@ -449,7 +538,9 @@ else:
     with st.expander("➕ Add New Order", expanded=False):
       with st.form("order_form", clear_on_submit=True):
         customer_name = st.text_input("Customer Name")
-        phone_number = st.text_input("Phone Number")
+        phone_number = st.text_input(
+            "Phone Number (e.g., +923001234567 for WhatsApp)"
+        )
 
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -537,8 +628,9 @@ else:
               with open(saved_img_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
 
+            new_order_id = str(datetime.datetime.now().timestamp())
             new_order = {
-                "id": str(datetime.datetime.now().timestamp()),
+                "id": new_order_id,
                 "name": customer_name,
                 "phone": phone_number,
                 "date": formatted_date,
@@ -551,19 +643,21 @@ else:
             st.session_state.orders.insert(0, new_order)
             save_orders(st.session_state.orders)
             trigger_confetti()
-            st.success("Note and order saved successfully!")
+            st.success("Order & Barcode ID generated successfully!")
             st.rerun()
 
     st.markdown("---")
 
-    # 100% Zero-Delay Client-Side Persistent Orders & Notes Manager component
+    # 100% Zero-Delay Client-Side Persistent Orders & Notes Manager component with WhatsApp & Barcode/ID tag support
     orders_json_string = json.dumps(st.session_state.orders)
+    auto_wa_flag = "true" if st.session_state.auto_whatsapp else "false"
 
     components.html(
         f"""
         <!DOCTYPE html>
         <html>
         <head>
+        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
             body {{
@@ -716,6 +810,7 @@ else:
                 gap: 10px;
                 align-items: center;
                 flex-wrap: wrap;
+                margin-top: 10px;
             }}
             .action-select {{
                 padding: 10px 14px;
@@ -744,6 +839,34 @@ else:
                 color: #ffffff;
                 box-shadow: 0 0 20px #ff1aff;
             }}
+            .whatsapp-btn {{
+                background: rgba(37, 211, 102, 0.3);
+                color: #ffffff;
+                border: 2px solid #25D366;
+                padding: 10px 16px;
+                border-radius: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                transition: all 0.2s ease;
+            }}
+            .whatsapp-btn:hover {{
+                background: #25D366;
+                color: #ffffff;
+                box-shadow: 0 0 20px #25D366;
+            }}
+            .barcode-container {{
+                background: #ffffff;
+                padding: 10px;
+                border-radius: 12px;
+                display: inline-block;
+                margin-top: 10px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            }}
             .empty-state {{
                 text-align: center;
                 padding: 30px;
@@ -756,7 +879,7 @@ else:
         </head>
         <body>
             <div class="toolbar">
-                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search orders, notes, phone..." oninput="renderOrders()">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search orders, notes, phone, ID..." oninput="renderOrders()">
                 <select id="sortSelect" class="sort-select" onchange="renderOrders()">
                     <option value="due">Sort: Closest Due Date</option>
                     <option value="newest">Sort: Newest Added</option>
@@ -774,11 +897,10 @@ else:
             <div id="ordersContainer"></div>
 
             <script>
-                // LocalStorage Fallback & Permanent Sync Initialization
                 let serverOrders = {orders_json_string};
                 let storageKey = "momo_permanent_client_orders_v1";
+                let autoWaEnabled = {auto_wa_flag};
                 
-                // Merge server state with localStorage for permanent zero-loss retention
                 function getOrders() {{
                     let localData = localStorage.getItem(storageKey);
                     if (localData) {{
@@ -805,6 +927,11 @@ else:
                     renderOrders();
                 }}
 
+                function cleanPhone(phone) {{
+                    if (!phone) return "";
+                    return phone.replace(/\\D/g, '');
+                }}
+
                 function updateOrderField(id, field, value) {{
                     let idx = orders.findIndex(o => o.id === id);
                     if (idx !== -1) {{
@@ -819,9 +946,25 @@ else:
                     if (noteEl && statusEl) {{
                         let idx = orders.findIndex(o => o.id === id);
                         if (idx !== -1) {{
+                            let oldStatus = orders[idx].status || "Pending";
+                            let newStatus = statusEl.value;
+                            
                             orders[idx].notes = noteEl.value;
-                            orders[idx].status = statusEl.value;
+                            orders[idx].status = newStatus;
                             localStorage.setItem(storageKey, JSON.stringify(orders));
+
+                            // Trigger auto WhatsApp if enabled and status changed away from Pending
+                            let phoneNum = cleanPhone(orders[idx].phone);
+                            if (autoWaEnabled && newStatus !== "Pending" && phoneNum) {{
+                                let msg = `Your Order Is Ready to Dispatch! Hi ${{orders[idx].name}}, your order status is now *${{newStatus}}* (Due: ${{orders[idx].date}}). Thank you for choosing Momo Fashion! ✨`;
+                                if (newStatus === "Completed") {{
+                                    msg = `Your Order Is Completed! Hi ${{orders[idx].name}}, your order is ready for pickup/delivery. Thank you for choosing Momo Fashion! ✨`;
+                                }} else if (newStatus === "In Progress") {{
+                                    msg = `Hi ${{orders[idx].name}}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨`;
+                                }}
+                                window.open(`https://wa.me/${{phoneNum}}?text=${{encodeURIComponent(msg)}}`, '_blank');
+                            }}
+
                             renderOrders();
                         }}
                     }}
@@ -834,9 +977,11 @@ else:
 
                     let filtered = orders.filter(o => {{
                         let matchesTab = (o.status || "Pending") === currentTab;
+                        let shortId = String(o.id).slice(-6);
                         let matchesSearch = (o.name || "").toLowerCase().includes(search) ||
                                           (o.phone || "").toLowerCase().includes(search) ||
-                                          (o.notes || "").toLowerCase().includes(search);
+                                          (o.notes || "").toLowerCase().includes(search) ||
+                                          shortId.includes(search);
                         return matchesTab && matchesSearch;
                     }});
 
@@ -860,13 +1005,24 @@ else:
                     let html = '';
                     filtered.forEach(o => {{
                         let badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
+                        let shortId = String(o.id).slice(-6);
+                        let phoneNum = cleanPhone(o.phone);
+                        let waLink = phoneNum ? `https://wa.me/${{phoneNum}}?text=` + encodeURIComponent(`Hello ${o.name}, regarding your order at Momo Fashion due on ${o.date}: `) : '#';
+
                         html += `
                             <div class="glass-card">
                                 <div class="card-header">
-                                    <h3 class="card-title">👤 ${{o.name || 'Customer'}}</h3>
+                                    <h3 class="card-title">👤 ${{o.name || 'Customer'}} (ID: #${{shortId}})</h3>
                                     <span class="status-badge ${{badgeClass}}">${{o.status || 'Pending'}}</span>
                                 </div>
                                 <div class="meta-text">📞 Phone: ${{o.phone || 'None'}} &nbsp;|&nbsp; 📅 Due Date: ${{o.date || 'N/A'}}</div>
+                                
+                                <div style="margin-bottom: 12px;">
+                                    <div class="barcode-container">
+                                        <svg id="barcode_${{o.id}}"></svg>
+                                    </div>
+                                </div>
+
                                 <textarea id="note_${{o.id}}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${{o.id}}', 'notes', this.value)">${{o.notes || ''}}</textarea>
                                 <div class="action-row">
                                     <select id="status_${{o.id}}" class="action-select" onchange="updateOrderField('${{o.id}}', 'status', this.value)">
@@ -876,11 +1032,26 @@ else:
                                         <option value="Completed" ${{o.status === 'Completed' ? 'selected' : ''}}>✅ Completed</option>
                                     </select>
                                     <button class="save-note-btn" onclick="saveNoteAndStatus('${{o.id}}')">💾 Save Note & Status</button>
+                                    ${{phoneNum ? `<a href="${{waLink}}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}}
                                 </div>
                             </div>
                         `;
                     }});
                     container.innerHTML = html;
+
+                    // Generate Barcodes via JsBarcode
+                    filtered.forEach(o => {{
+                        let shortId = String(o.id).slice(-6);
+                        try {{
+                            JsBarcode("#barcode_" + o.id, shortId, {{
+                                format: "CODE128",
+                                width: 1.5,
+                                height: 40,
+                                displayValue: true,
+                                fontSize: 12
+                            }});
+                        }} catch(e) {{}}
+                    }});
                 }}
 
                 renderOrders();
@@ -888,7 +1059,7 @@ else:
         </body>
         </html>
         """,
-        height=650,
+        height=700,
     )
 
   with tab_calc:
@@ -898,7 +1069,6 @@ else:
         unsafe_allow_html=True,
     )
 
-    # Fully Animated Client-Side Glowing Calculator Component
     components.html(
         """
         <!DOCTYPE html>
