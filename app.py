@@ -242,7 +242,6 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
-# Global WhatsApp automation toggle state
 if "auto_whatsapp" not in st.session_state:
   st.session_state.auto_whatsapp = True
 
@@ -264,7 +263,6 @@ def trigger_confetti():
   )
 
 
-# Helper to format clean phone numbers for WhatsApp URL scheme
 def clean_phone(phone_str):
   if not phone_str:
     return ""
@@ -272,7 +270,6 @@ def clean_phone(phone_str):
   return digits
 
 
-# Trigger automatic WhatsApp tab open via JavaScript if enabled and status changed
 def trigger_whatsapp_popup(phone, message):
   clean_num = clean_phone(phone)
   if not clean_num:
@@ -376,13 +373,12 @@ if st.session_state.selected_order_id is not None:
         unsafe_allow_html=True,
     )
 
-    # WhatsApp Direct Action Buttons on Detail Page
     if clean_num:
       st.markdown(
           "<h3 style='color: #ffffff; font-size: 1.1rem;'>💬 Quick WhatsApp"
           " Actions</h3>",
           unsafe_allow_html=True,
-      }
+      )
       wa_col1, wa_col2 = st.columns(2)
       with wa_col1:
         custom_msg = f"Hello {current_order['name']}, regarding your order at Momo Fashion due on {current_order['date']}: "
@@ -410,7 +406,6 @@ if st.session_state.selected_order_id is not None:
         )
       st.markdown("<br>", unsafe_allow_html=True)
 
-    # Quick Status Update selector on Details Page
     st.markdown(
         "<h3 style='color: #ffffff;'>⚡ Update Status</h3>",
         unsafe_allow_html=True,
@@ -431,11 +426,9 @@ if st.session_state.selected_order_id is not None:
         key=f"status_select_{current_order['id']}",
     )
     if new_status_val != status:
-      old_status = status
       current_order["status"] = new_status_val
       save_orders(st.session_state.orders)
 
-      # Trigger auto WhatsApp notification if enabled and status is non-Pending
       if (
           st.session_state.auto_whatsapp
           and new_status_val != "Pending"
@@ -508,7 +501,6 @@ else:
       '<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True
   )
 
-  # Top Settings Bar for Automated WhatsApp Notification Toggle & Barcode info
   with st.expander("⚙️ WhatsApp Automation Settings & Quick Info", expanded=False):
     st.markdown(
         "<p style='color: #ffffff; font-weight: 600;'>Configure automated"
@@ -522,8 +514,7 @@ else:
     if st.session_state.auto_whatsapp:
       st.success(
           "Auto-messaging is active: changing status to 'In Progress',"
-            " 'Ready to Dispatch', or 'Completed' will prompt WhatsApp"
-            " instantly."
+          " 'Ready to Dispatch', or 'Completed' will prompt WhatsApp instantly."
       )
     else:
       st.warning(
@@ -531,7 +522,6 @@ else:
           " via chat buttons."
       )
 
-  # Top-Level Tabs for Orders Management vs Calculator
   tab_orders, tab_calc = st.tabs(["🛍️ Orders & Management", "🧮 Calculator"])
 
   with tab_orders:
@@ -648,7 +638,6 @@ else:
 
     st.markdown("---")
 
-    # 100% Zero-Delay Client-Side Persistent Orders & Notes Manager component with WhatsApp & Barcode/ID tag support
     orders_json_string = json.dumps(st.session_state.orders)
     auto_wa_flag = "true" if st.session_state.auto_whatsapp else "false"
 
@@ -946,14 +935,12 @@ else:
                     if (noteEl && statusEl) {{
                         let idx = orders.findIndex(o => o.id === id);
                         if (idx !== -1) {{
-                            let oldStatus = orders[idx].status || "Pending";
                             let newStatus = statusEl.value;
                             
                             orders[idx].notes = noteEl.value;
                             orders[idx].status = newStatus;
                             localStorage.setItem(storageKey, JSON.stringify(orders));
 
-                            // Trigger auto WhatsApp if enabled and status changed away from Pending
                             let phoneNum = cleanPhone(orders[idx].phone);
                             if (autoWaEnabled && newStatus !== "Pending" && phoneNum) {{
                                 let msg = `Your Order Is Ready to Dispatch! Hi ${{orders[idx].name}}, your order status is now *${{newStatus}}* (Due: ${{orders[idx].date}}). Thank you for choosing Momo Fashion! ✨`;
@@ -1039,7 +1026,6 @@ else:
                     }});
                     container.innerHTML = html;
 
-                    // Generate Barcodes via JsBarcode
                     filtered.forEach(o => {{
                         let shortId = String(o.id).slice(-6);
                         try {{
@@ -1159,7 +1145,7 @@ else:
                     <button class="calc-btn" onclick="press('C')">C</button>
                     <button class="calc-btn" onclick="press('⌫')">⌫</button>
                     <button class="calc-btn" onclick="press('/')">/</button>
-                    <button class="calc-btn" onclick="press('*')">*</button>
+                    <button class="calc_btn" onclick="press('*')">*</button>
                     
                     <button class="calc-btn" onclick="press('7')">7</button>
                     <button class="calc-btn" onclick="press('8')">8</button>
