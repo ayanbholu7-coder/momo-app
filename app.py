@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+from streamlit_autorefresh import st_autorefresh
 import json
 import os
 import datetime
@@ -12,6 +13,9 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed"
 )
+
+# Auto-refresh the entire app every 1 second (1000 milliseconds)
+st_autorefresh(interval=1000, limit=None, key="momo_live_refresh")
 
 st.markdown("""
     <style>
@@ -220,7 +224,6 @@ if not os.path.exists(UPLOAD_DIR):
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-@st.cache_data(ttl=5)
 def load_users_db():
     if os.path.exists(USERS_DB_FILE):
         try:
@@ -233,7 +236,6 @@ def load_users_db():
 def save_users_db(users_data):
     with open(USERS_DB_FILE, "w") as f:
         json.dump(users_data, f)
-    st.cache_data.clear()
 
 def load_admin_config():
     default_config = {"is_locked": False, "unlock_code": "1234", "lock_id": "1"}
