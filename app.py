@@ -3,7 +3,7 @@ import json
 import os
 import streamlit as st
 
-# 1. Page Setup & Ultra-Sleek Interactive Animations
+# 1. Page Setup & Ultra-Mobile-Responsive Glassmorphism Styling
 st.set_page_config(
     page_title="Momo Fashion", page_icon="✨", layout="centered"
 )
@@ -15,7 +15,7 @@ st.markdown(
 
         :root {
             --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe3ec 50%, #ffd1dc 100%);
-            --card-bg: rgba(255, 255, 255, 0.88);
+            --card-bg: rgba(255, 255, 255, 0.9);
             --text-primary: #1a1a1a;
             --accent-pink: #ff3385;
             --accent-hover: #ff1a75;
@@ -26,7 +26,7 @@ st.markdown(
             background: var(--bg-gradient);
             background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            animation: fadeInApp 0.8s ease-out;
+            animation: fadeInApp 0.6s ease-out;
         }
 
         @keyframes fadeInApp {
@@ -34,18 +34,18 @@ st.markdown(
             to { opacity: 1; }
         }
 
-        /* Animated Glowing Header */
+        /* Mobile-Optimized Glowing Header */
         .momo-header {
             text-align: center;
-            font-size: 3rem;
+            font-size: clamp(2.2rem, 8vw, 3rem);
             font-weight: 800;
             background: linear-gradient(45deg, #ff1a75, #ff66b2, #ff3385, #ff1a75);
             background-size: 300% 300%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             letter-spacing: -1px;
-            animation: gradientShift 6s ease infinite, fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: gradientShift 6s ease infinite, fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             text-shadow: 0 10px 30px rgba(255, 51, 133, 0.15);
         }
 
@@ -55,18 +55,18 @@ st.markdown(
             100% { background-position: 0% 50%; }
         }
 
-        /* Glassmorphism Interactive Cards with Smooth Scale */
+        /* Touch-Friendly Glass Cards */
         .order-card {
             background: var(--card-bg);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            padding: 22px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            margin-bottom: 16px;
-            box-shadow: 0 15px 35px rgba(255, 51, 133, 0.08);
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            padding: 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            margin-bottom: 14px;
+            box-shadow: 0 10px 30px rgba(255, 51, 133, 0.08);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             position: relative;
             overflow: hidden;
         }
@@ -80,20 +80,13 @@ st.markdown(
             height: 100%;
             background: linear-gradient(to bottom, #ff1a75, #ff66b2);
             opacity: 0.8;
-            transition: width 0.3s ease;
         }
 
-        .order-card:hover {
-            transform: translateY(-6px) scale(1.01);
-            box-shadow: 0 25px 50px rgba(255, 51, 133, 0.18);
-            background: rgba(255, 255, 255, 0.95);
+        .order-card:active {
+            transform: scale(0.98);
         }
 
-        .order-card:hover::before {
-            width: 8px;
-        }
-
-        /* High-Impact Interactive Buttons */
+        /* High-Impact Touch Buttons optimized for mobile tapping */
         div.stButton > button {
             background: linear-gradient(135deg, #1a1a1a, #333333);
             color: white;
@@ -101,39 +94,41 @@ st.markdown(
             font-weight: 600;
             border: none;
             width: 100%;
-            padding: 12px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            padding: 14px;
+            min-height: 48px;
+            font-size: 1rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
         }
 
         div.stButton > button:hover {
             background: linear-gradient(135deg, #ff1a75, #ff3385);
             color: white;
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 12px 25px rgba(255, 51, 133, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 51, 133, 0.3);
         }
 
         div.stButton > button:active {
-            transform: translateY(1px) scale(0.98);
+            transform: scale(0.96);
         }
 
-        /* Detail Card Animation */
+        /* Responsive Detail Card */
         .detail-card {
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(16px);
-            padding: 30px;
-            border-radius: 24px;
+            padding: 20px;
+            border-radius: 20px;
             border: 1px solid #ffb3d1;
-            box-shadow: 0 20px 45px rgba(255, 51, 133, 0.12);
-            animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            box-shadow: 0 15px 35px rgba(255, 51, 133, 0.12);
+            animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Status Badge Styling */
+        /* Status Badge */
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             letter-spacing: 0.5px;
             text-transform: uppercase;
@@ -143,18 +138,23 @@ st.markdown(
         .status-fitting { background: #cce5ff; color: #004085; }
         .status-completed { background: #d4edda; color: #155724; }
 
+        /* Mobile inputs sizing adjustments */
+        input, textarea, select {
+            font-size: 16px !important; /* Prevents auto-zoom on mobile safari/chrome */
+        }
+
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
+            from { opacity: 0; transform: translateY(-15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.95); }
+            from { opacity: 0; transform: scale(0.97); }
             to { opacity: 1; transform: scale(1); }
         }
     </style>
@@ -190,7 +190,7 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
-# 3. Monthly Lock System (Triggers on 1st of the month)
+# 3. Monthly Lock System
 SECRET_CODE = "momo2026"
 now = datetime.datetime.now()
 current_month_year = f"{now.month}-{now.year}"
@@ -206,8 +206,7 @@ needs_unlock = (
 if needs_unlock:
   st.markdown("---")
   st.markdown(
-      "<h2 style='text-align: center; color: #ff1a75; animation:"
-      " fadeInDown 0.5s ease;'>🔒 App Locked</h2>",
+      "<h2 style='text-align: center; color: #ff1a75;'>🔒 App Locked</h2>",
       unsafe_allow_html=True,
   )
   st.markdown(
@@ -247,7 +246,6 @@ if st.session_state.selected_order_id is not None:
         unsafe_allow_html=True,
     )
 
-    # Calculate financial balance
     total_p = current_order.get("total_price", 0.0)
     advance_p = current_order.get("advance_paid", 0.0)
     remaining_p = total_p - advance_p
@@ -263,33 +261,33 @@ if st.session_state.selected_order_id is not None:
     st.markdown(
         f"""
         <div class="detail-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin:0; color: #1a1a1a;">👤 {current_order['name']}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <h3 style="margin:0; color: #1a1a1a; font-size: 1.2rem;">👤 {current_order['name']}</h3>
                 <span class="status-badge {status_class}">{status}</span>
             </div>
-            <p style="font-size: 1.05rem; margin-bottom: 10px; color: #1a1a1a;"><b>📞 Phone Number:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
-            <p style="font-size: 1.05rem; margin-bottom: 15px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1rem; margin-bottom: 8px; color: #1a1a1a;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
+            <p style="font-size: 1rem; margin-bottom: 12px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
             
-            <hr style="border: 0; border-top: 1px solid #ffd1dc; margin: 15px 0;">
+            <hr style="border: 0; border-top: 1px solid #ffd1dc; margin: 12px 0;">
             
-            <h4 style="color: #ff1a75; margin-bottom: 8px;">💰 Financial Breakdown</h4>
-            <div style="display: flex; gap: 20px; background: rgba(255,255,255,0.7); padding: 12px 16px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ffd1dc;">
+            <h4 style="color: #ff1a75; margin-bottom: 6px; font-size: 1.05rem;">💰 Financials</h4>
+            <div style="background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #ffd1dc; display: flex; justify-content: space-around; font-size: 0.95rem;">
                 <div><b>Total:</b> ${total_p:.2f}</div>
-                <div><b>Paid Advance:</b> ${advance_p:.2f}</div>
-                <div><b>Remaining:</b> <span style="color: {'#d9534f' if remaining_p > 0 else '#5cb85c'};"><b>${remaining_p:.2f}</b></span></div>
+                <div><b>Paid:</b> ${advance_p:.2f}</div>
+                <div><b>Left:</b> <span style="color: {'#d9534f' if remaining_p > 0 else '#5cb85c'};"><b>${remaining_p:.2f}</b></span></div>
             </div>
 
-            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #1a1a1a;"><b>📝 Notes & Measurements:</b></p>
-            <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 12px; border: 1px solid #ffd1dc; color: #333; font-size: 1rem; white-space: pre-wrap; margin-bottom: 20px;">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
+            <p style="font-size: 1rem; margin-bottom: 6px; color: #1a1a1a;"><b>📝 Notes & Measurements:</b></p>
+            <div style="background: rgba(255,255,255,0.8); padding: 12px; border-radius: 12px; border: 1px solid #ffd1dc; color: #333; font-size: 0.95rem; white-space: pre-wrap; margin-bottom: 15px;">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Display uploaded image if available
     img_path = current_order.get("image_path")
     if img_path and os.path.exists(img_path):
       st.markdown(
-          "<br><h4 style='color: #ff1a75;'>📸 Design / Swatch Reference</h4>",
+          "<br><h4 style='color: #ff1a75; font-size: 1.05rem;'>📸 Design / Swatch"
+          " Reference</h4>",
           unsafe_allow_html=True,
       )
       st.image(img_path, caption="Reference Photo", use_container_width=True)
@@ -316,7 +314,7 @@ if st.session_state.selected_order_id is not None:
     st.rerun()
 
 else:
-  # Main App Interface
+  # Main Mobile-Optimized App Interface
   st.markdown(
       '<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True
   )
@@ -398,7 +396,6 @@ else:
           month_index = months.index(month_val) + 1
           formatted_date = f"{month_index:02d}/{day_val:02d}/{year_val}"
 
-          # Handle image saving securely
           saved_img_path = None
           if uploaded_file is not None:
             file_extension = uploaded_file.name.split(".")[-1]
@@ -427,18 +424,14 @@ else:
 
   st.markdown("---")
 
-  # Search and Filter Toolbar
-  col_s1, col_s2 = st.columns([2, 1])
-  with col_s1:
-    search_term = st.text_input(
-        "🔍 Search orders...", placeholder="Type name, phone, or notes..."
-    ).lower()
-  with col_s2:
-    sort_option = st.selectbox(
-        "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
-    )
+  # Search and Filter Toolbar for Touchscreens
+  search_term = st.text_input(
+      "🔍 Search orders...", placeholder="Type name, phone, or notes..."
+  ).lower()
+  sort_option = st.selectbox(
+      "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
+  )
 
-  # Filtering logic
   filtered_orders = [
       o
       for o in st.session_state.orders
@@ -448,7 +441,6 @@ else:
   ]
 
 
-  # Automatic Sorting logic based on selection
   def get_sorting_key(order_item):
     if sort_option == "Closest Due Date":
       try:
@@ -457,7 +449,7 @@ else:
         return datetime.datetime.max
     elif sort_option == "Newest Added":
       return -float(order_item["id"])
-    else:  # Customer Name
+    else:
       return order_item["name"].lower()
 
 
@@ -478,11 +470,11 @@ else:
       st.markdown(
           f"""
             <div class="order-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <h3 style="margin: 0; color: #1a1a1a;">👤 {order['name']}</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                    <h3 style="margin: 0; color: #1a1a1a; font-size: 1.1rem;">👤 {order['name']}</h3>
                     <span class="status-badge {status_class}">{status}</span>
                 </div>
-                <p style="font-size: 0.9rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
+                <p style="font-size: 0.85rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
             </div>
             """,
           unsafe_allow_html=True,
