@@ -558,7 +558,7 @@ else:
 
     # 100% Zero-Delay Client-Side Persistent Orders & Notes Manager component
     orders_json_string = json.dumps(st.session_state.orders)
-    
+
     components.html(
         f"""
         <!DOCTYPE html>
@@ -717,7 +717,7 @@ else:
                 align-items: center;
                 flex-wrap: wrap;
             }}
-            .action-select {
+            .action-select {{
                 padding: 10px 14px;
                 border-radius: 12px;
                 border: 2px solid rgba(255, 255, 255, 0.6);
@@ -727,8 +727,8 @@ else:
                 font-size: 0.9rem;
                 outline: none;
                 cursor: pointer;
-            }
-            .save-note-btn {
+            }}
+            .save-note-btn {{
                 background: rgba(255, 255, 255, 0.9);
                 color: #ff1aff;
                 border: 2px solid #ffffff;
@@ -738,12 +738,12 @@ else:
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.2s ease;
-            }
-            .save-note-btn:hover {
+            }}
+            .save-note-btn:hover {{
                 background: #ff1aff;
                 color: #ffffff;
                 box-shadow: 0 0 20px #ff1aff;
-            }
+            }}
             .empty-state {{
                 text-align: center;
                 padding: 30px;
