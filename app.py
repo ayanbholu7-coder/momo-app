@@ -15,7 +15,7 @@ st.markdown(
 
         :root {
             --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe3ec 50%, #ffd1dc 100%);
-            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-bg: rgba(255, 255, 255, 0.88);
             --text-primary: #1a1a1a;
             --accent-pink: #ff3385;
             --accent-hover: #ff1a75;
@@ -119,7 +119,7 @@ st.markdown(
 
         /* Detail Card Animation */
         .detail-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(16px);
             padding: 30px;
             border-radius: 24px;
@@ -127,6 +127,21 @@ st.markdown(
             box-shadow: 0 20px 45px rgba(255, 51, 133, 0.12);
             animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* Status Badge Styling */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #ffe6eb; color: #ff1a75; }
+        .status-progress { background: #fff3cd; color: #856404; }
+        .status-fitting { background: #cce5ff; color: #004085; }
+        .status-completed { background: #d4edda; color: #155724; }
 
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-20px); }
@@ -147,8 +162,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 2. Permanent Server-Side JSON Storage
+# 2. Permanent Server-Side JSON Storage & Image Upload Folder
 DB_FILE = "momo_persistent_orders.json"
+UPLOAD_DIR = "momo_uploads"
+if not os.path.exists(UPLOAD_DIR):
+  os.makedirs(UPLOAD_DIR)
 
 
 def load_orders():
@@ -209,7 +227,7 @@ if needs_unlock:
   st.stop()
 
 # 4. Routing: Detail Page vs Main List Page
-if st.session_state.selected_order_id is not None:
+if st.session_state.selected_order_id is not Model_ID := None:
   current_order = next(
       (
           o
@@ -229,21 +247,62 @@ if st.session_state.selected_order_id is not None:
         unsafe_allow_html=True,
     )
 
+    # Calculate financial balance
+    total_p = current_order.get("total_price", 0.0)
+    advance_p = current_order.get("advance_paid", 0.0)
+    remaining_p = total_p - advance_p
+
+    status = current_order.get("status", "Pending")
+    status_class = {
+        "Pending": "status-pending",
+        "In Progress": "status-progress",
+        "Fitting Ready": "status-fitting",
+        "Completed": "status-completed",
+    }.get(status, "status-pending")
+
     st.markdown(
         f"""
         <div class="detail-card">
-            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #1a1a1a;"><b>👤 Customer Name:</b> {current_order['name']}</p>
-            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #1a1a1a;"><b>📞 Phone Number:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
-            <p style="font-size: 1.1rem; margin-bottom: 15px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
-            <p style="font-size: 1.1rem; margin-bottom: 8px; color: #1a1a1a;"><b>📝 Notes & Measurements:</b></p>
-            <div style="background: rgba(255,255,255,0.8); padding: 18px; border-radius: 14px; border: 1px solid #ffd1dc; color: #333; font-size: 1rem; white-space: pre-wrap; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
-        </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin:0; color: #1a1a1a;">👤 {current_order['name']}</h3>
+                <span class="status-badge {status_class}">{status}</span>
+            </div>
+            <p style="font-size: 1.05rem; margin-bottom: 10px; color: #1a1a1a;"><b>📞 Phone Number:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 15px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            
+            <hr style="border: 0; border-top: 1px solid #ffd1dc; margin: 15px 0;">
+            
+            <h4 style="color: #ff1a75; margin-bottom: 8px;">💰 Financial Breakdown</h4>
+            <div style="display: flex; gap: 20px; background: rgba(255,255,255,0.7); padding: 12px 16px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #ffd1dc;">
+                <div><b>Total:</b> ${total_p:.2f}</div>
+                <div><b>Paid Advance:</b> ${advance_p:.2f}</div>
+                <div><b>Remaining:</b> <span style="color: {'#d9534f' if remaining_p > 0 else '#5cb85c'};"><b>${remaining_p:.2f}</b></span></div>
+            </div>
+
+            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #1a1a1a;"><b>📝 Notes & Measurements:</b></p>
+            <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 12px; border: 1px solid #ffd1dc; color: #333; font-size: 1rem; white-space: pre-wrap; margin-bottom: 20px;">{current_order['notes'] if current_order['notes'] else 'No notes added.'}</div>
         """,
         unsafe_allow_html=True,
     )
 
+    # Display uploaded image if available
+    img_path = current_order.get("image_path")
+    if img_path and os.path.exists(img_path):
+      st.markdown(
+          "<br><h4 style='color: #ff1a75;'>📸 Design / Swatch Reference</h4>",
+          unsafe_allow_html=True,
+      )
+      st.image(img_path, caption="Reference Photo", use_container_width=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
+
     if st.button("🗑️ Delete This Order"):
+      if img_path and os.path.exists(img_path):
+        try:
+          os.remove(img_path)
+        except:
+          pass
       st.session_state.orders = [
           o
           for o in st.session_state.orders
@@ -266,6 +325,21 @@ else:
     with st.form("order_form", clear_on_submit=True):
       customer_name = st.text_input("Customer Name")
       phone_number = st.text_input("Phone Number")
+
+      col_p1, col_p2 = st.columns(2)
+      with col_p1:
+        total_price = st.number_input(
+            "Total Price ($)", min_value=0.0, step=10.0, format="%.2f"
+        )
+      with col_p2:
+        advance_paid = st.number_input(
+            "Advance Paid ($)", min_value=0.0, step=10.0, format="%.2f"
+        )
+
+      order_status = st.selectbox(
+          "Order Status",
+          ["Pending", "In Progress", "Fitting Ready", "Completed"],
+      )
 
       st.markdown(
           "<p"
@@ -311,7 +385,10 @@ else:
             label_visibility="collapsed",
         )
 
-      order_notes = st.text_area("Measurements, design details, price...")
+      order_notes = st.text_area("Measurements, design details...")
+      uploaded_file = st.file_uploader(
+          "Upload Reference Photo / Swatch", type=["png", "jpg", "jpeg"]
+      )
 
       submitted = st.form_submit_button("Save Order")
       if submitted:
@@ -320,12 +397,28 @@ else:
         else:
           month_index = months.index(month_val) + 1
           formatted_date = f"{month_index:02d}/{day_val:02d}/{year_val}"
+
+          # Handle image saving securely
+          saved_img_path = None
+          if uploaded_file is not None:
+            file_extension = uploaded_file.name.split(".")[-1]
+            file_name = (
+                f"{datetime.datetime.now().timestamp()}_.{file_extension}"
+            )
+            saved_img_path = os.path.join(UPLOAD_DIR, file_name)
+            with open(saved_img_path, "wb") as f:
+              f.write(uploaded_file.getbuffer())
+
           new_order = {
               "id": str(datetime.datetime.now().timestamp()),
               "name": customer_name,
               "phone": phone_number,
               "date": formatted_date,
               "notes": order_notes,
+              "total_price": total_price,
+              "advance_paid": advance_paid,
+              "status": order_status,
+              "image_path": saved_img_path,
           }
           st.session_state.orders.insert(0, new_order)
           save_orders(st.session_state.orders)
@@ -334,10 +427,18 @@ else:
 
   st.markdown("---")
 
-  search_term = st.text_input(
-      "🔍 Search orders...", placeholder="Type name, phone, or notes..."
-  ).lower()
+  # Search and Filter Toolbar
+  col_s1, col_s2 = st.columns([2, 1])
+  with col_s1:
+    search_term = st.text_input(
+        "🔍 Search orders...", placeholder="Type name, phone, or notes..."
+    ).lower()
+  with col_s2:
+    sort_option = st.selectbox(
+        "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
+    )
 
+  # Filtering logic
   filtered_orders = [
       o
       for o in st.session_state.orders
@@ -346,14 +447,41 @@ else:
       or search_term in o["notes"].lower()
   ]
 
+
+  # Automatic Sorting logic based on selection
+  def get_sorting_key(order_item):
+    if sort_option == "Closest Due Date":
+      try:
+        return datetime.datetime.strptime(order_item["date"], "%m/%d/%Y")
+      except:
+        return datetime.datetime.max
+    elif sort_option == "Newest Added":
+      return -float(order_item["id"])
+    else:  # Customer Name
+      return order_item["name"].lower()
+
+
+  filtered_orders.sort(key=get_sorting_key)
+
   if not filtered_orders:
     st.info("No orders found.")
   else:
     for order in filtered_orders:
+      status = order.get("status", "Pending")
+      status_class = {
+          "Pending": "status-pending",
+          "In Progress": "status-progress",
+          "Fitting Ready": "status-fitting",
+          "Completed": "status-completed",
+      }.get(status, "status-pending")
+
       st.markdown(
           f"""
             <div class="order-card">
-                <h3 style="margin-bottom: 4px; color: #1a1a1a;">👤 {order['name']}</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <h3 style="margin: 0; color: #1a1a1a;">👤 {order['name']}</h3>
+                    <span class="status-badge {status_class}">{status}</span>
+                </div>
                 <p style="font-size: 0.9rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
             </div>
             """,
