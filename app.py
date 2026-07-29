@@ -358,6 +358,26 @@ if st.session_state.selected_order_id is not None:
         unsafe_allow_html=True,
     )
 
+    # Quick Status Update selector on Details Page
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        "<h3 style='color: #ffffff;'>⚡ Update Status</h3>",
+        unsafe_allow_html=True,
+    )
+    new_status_val = st.selectbox(
+        "Change Order Status",
+        ["Pending", "In Progress", "Fitting Ready", "Completed"],
+        index=["Pending", "In Progress", "Fitting Ready", "Completed"].index(
+            status
+        ),
+        key=f"status_select_{current_order['id']}",
+    )
+    if new_status_val != status:
+      current_order["status"] = new_status_val
+      save_orders(st.session_state.orders)
+      st.success(f"Status updated to {new_status_val}!")
+      st.rerun()
+
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         "<h3 style='color: #ffffff;'>💰 Financial Breakdown</h3>",
@@ -537,57 +557,76 @@ else:
         "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
     )
 
-    filtered_orders = [
-        o
-        for o in st.session_state.orders
-        if search_term in o["name"].lower()
-        or search_term in o["phone"].lower()
-        or search_term in o["notes"].lower()
+    # Sub-tabs for filtering orders by status
+    status_tabs = st.tabs(
+        ["⏳ Pending", "🚀 In Progress", "👗 Fitting Ready", "✅ Completed"]
+    )
+    status_mapping = [
+        "Pending",
+        "In Progress",
+        "Fitting Ready",
+        "Completed",
     ]
 
+    for idx, t_tab in enumerate(status_tabs):
+      with t_tab:
+        target_status = status_mapping[idx]
+        filtered_orders = [
+            o
+            for o in st.session_state.orders
+            if o.get("status", "Pending") == target_status
+            and (
+                search_term in o["name"].lower()
+                or search_term in o["phone"].lower()
+                or search_term in o["notes"].lower()
+            )
+        ]
 
-    def get_sorting_key(order_item):
-      if sort_option == "Closest Due Date":
-        try:
-          return datetime.datetime.strptime(order_item["date"], "%m/%d/%Y")
-        except:
-          return datetime.datetime.max
-      elif sort_option == "Newest Added":
-        return -float(order_item["id"])
-      else:
-        return order_item["name"].lower()
+
+        def get_sorting_key(order_item):
+          if sort_option == "Closest Due Date":
+            try:
+              return datetime.datetime.strptime(order_item["date"], "%m/%d/%Y")
+            except:
+              return datetime.datetime.max
+          elif sort_option == "Newest Added":
+            return -float(order_item["id"])
+          else:
+            return order_item["name"].lower()
 
 
-    filtered_orders.sort(key=get_sorting_key)
+        filtered_orders.sort(key=get_sorting_key)
 
-    if not filtered_orders:
-      st.info("No orders found.")
-    else:
-      for order in filtered_orders:
-        status = order.get("status", "Pending")
-        status_class = {
-            "Pending": "status-pending",
-            "In Progress": "status-progress",
-            "Fitting Ready": "status-fitting",
-            "Completed": "status-completed",
-        }.get(status, "status-pending")
+        if not filtered_orders:
+          st.info(f"No {target_status.lower()} orders found.")
+        else:
+          for order in filtered_orders:
+            status = order.get("status", "Pending")
+            status_class = {
+                "Pending": "status-pending",
+                "In Progress": "status-progress",
+                "Fitting Ready": "status-fitting",
+                "Completed": "status-completed",
+            }.get(status, "status-pending")
 
-        st.markdown(
-            f"""
-            <div class="glass-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                    <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;">👤 {order['name']}</h3>
-                    <span class="status-badge {status_class}">{status}</span>
+            st.markdown(
+                f"""
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                        <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;">👤 {order['name']}</h3>
+                        <span class="status-badge {status_class}">{status}</span>
+                    </div>
+                    <p style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 0px; text-shadow: 0 0 8px #ffffff;">📅 Due Date: {order['date']}</p>
                 </div>
-                <p style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 0px; text-shadow: 0 0 8px #ffffff;">📅 Due Date: {order['date']}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
-        if st.button("📄 View Details & Notes", key=f"view_{order['id']}"):
-          st.session_state.selected_order_id = order["id"]
-          st.rerun()
+            if st.button(
+                "📄 View Details & Notes", key=f"view_{target_status}_{order['id']}"
+            ):
+              st.session_state.selected_order_id = order["id"]
+              st.rerun()
 
   with tab_calc:
     st.markdown(
