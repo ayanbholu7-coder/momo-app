@@ -73,16 +73,22 @@ def save_orders(orders_list):
 if "orders" not in st.session_state:
   st.session_state.orders = load_orders()
 
-# 3. Simple Monthly Lock System
+# 3. Monthly Lock System (Fixed: Only locks on the 1st if not already unlocked for this month)
 SECRET_CODE = "momo2026"  # Change this password whenever you want
 now = datetime.datetime.now()
 current_month_year = f"{now.month}-{now.year}"
 
+# Initialize unlock state persistence across app reruns using query params or session state
 if "unlocked_month" not in st.session_state:
   st.session_state.unlocked_month = ""
 
-# Trigger Lock Screen on the 1st of the month
-if now.day >= 1 and st.session_state.unlocked_month != current_month_year:
+# Only lock if it's the 1st of the month AND it hasn't been unlocked for this specific month yet
+is_first_of_month = now.day == 1
+needs_unlock = (
+    is_first_of_month and st.session_state.unlocked_month != current_month_year
+)
+
+if needs_unlock:
   st.markdown("---")
   st.markdown("<h2 style='text-align: center;'>🔒 App Locked</h2>", unsafe_allow_html=True)
   st.markdown(
