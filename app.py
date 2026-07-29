@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. Page Setup & Next-Gen Ultra-Premium Glassmorphism Styling
+# 1. Page Setup & Dynamic Neon-Vibrant Pink Styling
 st.set_page_config(
     page_title="Momo Fashion",
     page_icon="✨",
@@ -18,64 +18,68 @@ st.markdown(
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
         :root {
-            --bg-gradient: linear-gradient(135deg, #fff0f3 0%, #ffe3ec 35%, #ffccd5 100%);
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.9);
+            --bg-gradient: linear-gradient(135deg, #ff69b4 0%, #ff1493 35%, #ff007f 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 1);
             --text-main: #1f1f1f;
-            --accent-pink: #ff1a75;
-            --accent-glow: rgba(255, 26, 117, 0.18);
+            --accent-pink: #ff007f;
         }
 
         .stApp {
-            background: var(--bg-gradient);
-            background-attachment: fixed;
+            background: linear-gradient(-45deg, #ff758c, #ff7eb3, #ff1493, #ff69b4);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            animation: fadeInApp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes fadeInApp {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        /* Deluxe Holographic Header */
+        /* Pulsing Alive Holographic Header */
         .momo-header {
             text-align: center;
-            font-size: clamp(2.2rem, 8vw, 3.2rem);
+            font-size: clamp(2.4rem, 8vw, 3.4rem);
             font-weight: 800;
-            background: linear-gradient(135deg, #ff1a75 0%, #ff4d94 50%, #ff80b3 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #ffffff;
             margin-bottom: 20px;
             letter-spacing: -1px;
-            text-shadow: 0 10px 30px rgba(255, 26, 117, 0.12);
-            animation: floatHeader 6s ease-in-out infinite;
+            text-shadow: 0 4px 25px rgba(255, 0, 127, 0.6), 0 2px 5px rgba(0,0,0,0.2);
+            animation: pulseHeader 3s ease-in-out infinite;
         }
 
-        @keyframes floatHeader {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
+        @keyframes pulseHeader {
+            0%, 100% { transform: scale(1); text-shadow: 0 4px 25px rgba(255, 0, 127, 0.6); }
+            50% { transform: scale(1.02); text-shadow: 0 6px 35px rgba(255, 255, 255, 0.9); }
         }
 
-        /* Ultra-Smooth Glassmorphism Containers */
+        /* Alive Glassmorphism Cards with Hover Pulse */
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 22px;
             margin-bottom: 16px;
-            box-shadow: 0 12px 40px rgba(255, 26, 117, 0.06);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 18px 50px rgba(255, 26, 117, 0.12);
-            border-color: rgba(255, 255, 255, 1);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 20px 50px rgba(255, 0, 127, 0.3);
+            border-color: #ffffff;
         }
 
         .glass-card::before {
@@ -83,35 +87,42 @@ st.markdown(
             position: absolute;
             top: 0;
             left: 0;
-            width: 5px;
+            width: 6px;
             height: 100%;
-            background: linear-gradient(to bottom, #ff1a75, #ff66b2);
+            background: linear-gradient(to bottom, #ff007f, #ff69b4);
+            animation: shimmerBar 3s linear infinite;
         }
 
-        /* High-End Interactive Buttons */
+        @keyframes shimmerBar {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(1.4); }
+            100% { filter: brightness(1); }
+        }
+
+        /* High-End Interactive Buttons with Neon Glow */
         div.stButton > button {
-            background: #1a1a1a;
+            background: #111111;
             color: #ffffff;
             border-radius: 16px;
-            font-weight: 600;
+            font-weight: 700;
             border: none;
             width: 100%;
             padding: 14px;
             min-height: 52px;
             font-size: 1rem;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         }
 
         div.stButton > button:hover {
-            background: #ff1a75;
+            background: #ff007f;
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(255, 26, 117, 0.3);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 0, 127, 0.6);
         }
 
         div.stButton > button:active {
-            transform: scale(0.97) translateY(0);
+            transform: scale(0.96) translateY(0);
         }
 
         /* Status Badges */
@@ -123,9 +134,9 @@ st.markdown(
             font-weight: 700;
             letter-spacing: 0.6px;
             text-transform: uppercase;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
         }
-        .status-pending { background: #ffe6eb; color: #ff1a75; border: 1px solid #ffb3c6; }
+        .status-pending { background: #ffe6eb; color: #ff007f; border: 1px solid #ffb3c6; }
         .status-progress { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-fitting { background: #cce5ff; color: #004085; border: 1px solid #b8daff; }
         .status-completed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -134,25 +145,25 @@ st.markdown(
         input, textarea, select {
             font-size: 16px !important;
             border-radius: 14px !important;
-            border: 1px solid rgba(255, 26, 117, 0.2) !important;
-            background: rgba(255, 255, 255, 0.8) !important;
+            border: 2px solid rgba(255, 255, 255, 0.8) !important;
+            background: rgba(255, 255, 255, 0.9) !important;
             transition: all 0.2s ease !important;
         }
 
         input:focus, textarea:focus, select:focus {
-            border-color: #ff1a75 !important;
-            box-shadow: 0 0 0 4px rgba(255, 26, 117, 0.15) !important;
+            border-color: #ff007f !important;
+            box-shadow: 0 0 0 5px rgba(255, 0, 127, 0.3) !important;
             background: #ffffff !important;
         }
 
         /* Seamless Modern Tabs */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: rgba(255, 255, 255, 0.4);
             padding: 8px;
             border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 25px rgba(255, 26, 117, 0.05);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
@@ -160,14 +171,14 @@ st.markdown(
             height: 50px;
             border-radius: 14px;
             font-weight: 700;
-            color: #4a4a4a;
+            color: #ffffff;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #ff1a75 0%, #ff4d94 100%) !important;
-            color: white !important;
-            box-shadow: 0 6px 20px rgba(255, 26, 117, 0.35);
+            background: #ffffff !important;
+            color: #ff007f !important;
+            box-shadow: 0 6px 20px rgba(255, 0, 127, 0.4);
         }
     </style>
 """,
@@ -220,12 +231,13 @@ needs_unlock = (
 if needs_unlock:
   st.markdown("---")
   st.markdown(
-      "<h2 style='text-align: center; color: #ff1a75;'>🔒 App Locked</h2>",
+      "<h2 style='text-align: center; color: #ffffff; text-shadow: 0 2px 10px"
+      " rgba(0,0,0,0.2);'>🔒 App Locked</h2>",
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #666;'>New billing cycle started."
-      " Enter code to unlock.</p>",
+      "<p style='text-align: center; color: #fff; font-weight: 500;'>New"
+      " billing cycle started. Enter code to unlock.</p>",
       unsafe_allow_html=True,
   )
 
@@ -280,14 +292,18 @@ if st.session_state.selected_order_id is not None:
                 <span class="status-badge {status_class}">{status}</span>
             </div>
             <p style="font-size: 1.05rem; margin-bottom: 8px; color: #333;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
-            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ff1a75;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ff007f;"><b>📅 Due Date:</b> {current_order['date']}</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 💰 Financial Breakdown")
+    st.markdown(
+        "<h3 style='color: #ffffff; text-shadow: 0 2px 10px"
+        " rgba(0,0,0,0.2);'>💰 Financial Breakdown</h3>",
+        unsafe_allow_html=True,
+    )
     f_col1, f_col2, f_col3 = st.columns(3)
     with f_col1:
       st.metric("Total Bill", f"${total_p:.2f}")
@@ -297,7 +313,11 @@ if st.session_state.selected_order_id is not None:
       st.metric("Balance Due", f"${remaining_p:.2f}")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 📝 Notes & Measurements")
+    st.markdown(
+        "<h3 style='color: #ffffff; text-shadow: 0 2px 10px"
+        " rgba(0,0,0,0.2);'>📝 Notes & Measurements</h3>",
+        unsafe_allow_html=True,
+    )
     st.info(
         current_order["notes"]
         if current_order["notes"]
@@ -307,8 +327,9 @@ if st.session_state.selected_order_id is not None:
     img_path = current_order.get("image_path")
     if img_path and os.path.exists(img_path):
       st.markdown(
-          "<br><h3 style='color: #ff1a75; font-size: 1.1rem;'>📸 Design /"
-          " Swatch Reference</h3>",
+          "<br><h3 style='color: #ffffff; text-shadow: 0 2px 10px"
+          " rgba(0,0,0,0.2); font-size: 1.1rem;'>📸 Design / Swatch"
+          " Reference</h3>",
           unsafe_allow_html=True,
       )
       st.image(img_path, caption="Reference Photo", use_container_width=True)
@@ -367,7 +388,7 @@ else:
 
         st.markdown(
             "<p"
-            " style='margin-bottom:0px; font-weight:600; font-size:0.9rem;'>Due"
+            " style='margin-bottom:0px; font-weight:600; font-size:0.9rem; color:#333;'>Due"
             " Date</p>",
             unsafe_allow_html=True,
         )
@@ -500,7 +521,7 @@ else:
                     <h3 style="margin: 0; color: #1a1a1a; font-size: 1.15rem;">👤 {order['name']}</h3>
                     <span class="status-badge {status_class}">{status}</span>
                 </div>
-                <p style="font-size: 0.9rem; color: #ff1a75; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
+                <p style="font-size: 0.9rem; color: #ff007f; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -512,12 +533,12 @@ else:
 
   with tab_calc:
     st.markdown(
-        "<h3 style='color: #ff1a75; text-align: center; margin-bottom:"
-        " 15px;'>Momo Calculator</h3>",
+        "<h3 style='color: #ffffff; text-align: center; margin-bottom: 15px;"
+        " text-shadow: 0 2px 10px rgba(0,0,0,0.2);'>Momo Calculator</h3>",
         unsafe_allow_html=True,
     )
 
-    # 1000x Aesthetic Zero-Latency Client-Side Calculator Component with Micro-Interactions
+    # Ultra-Vibrant Zero-Latency Client-Side Calculator Component
     components.html(
         """
         <!DOCTYPE html>
@@ -536,16 +557,16 @@ else:
             .calc-box {
                 width: 100%;
                 max-width: 380px;
-                background: rgba(255, 255, 255, 0.65);
+                background: rgba(255, 255, 255, 0.85);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 padding: 20px;
                 border-radius: 28px;
-                box-shadow: 0 15px 45px rgba(255, 26, 117, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.9);
+                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+                border: 1px solid rgba(255, 255, 255, 1);
             }
             .calc-screen {
-                background: #1a1a1a;
+                background: #111111;
                 color: #ffffff;
                 padding: 18px 22px;
                 border-radius: 20px;
@@ -564,30 +585,30 @@ else:
                 gap: 10px;
             }
             .calc-btn {
-                background: #2a2a2a;
+                background: #222222;
                 color: #ffffff;
                 font-size: 1.25rem;
                 font-weight: 700;
                 border-radius: 16px;
                 min-height: 56px;
-                border: 1px solid rgba(255, 26, 117, 0.15);
+                border: 1px solid rgba(255, 0, 127, 0.2);
                 cursor: pointer;
                 transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
                 user-select: none;
             }
             .calc-btn:hover {
-                background: #ff1a75;
-                border-color: #ff1a75;
+                background: #ff007f;
+                border-color: #ff007f;
                 transform: translateY(-2px);
-                box-shadow: 0 8px 22px rgba(255, 26, 117, 0.3);
+                box-shadow: 0 8px 22px rgba(255, 0, 127, 0.5);
             }
             .calc-btn:active {
                 transform: scale(0.93) translateY(0);
-                background: #e6005c;
+                background: #cc0066;
             }
             .span-2 {
                 grid-column: span 2;
