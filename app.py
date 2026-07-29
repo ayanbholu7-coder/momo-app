@@ -5,7 +5,10 @@ import streamlit as st
 
 # 1. Page Setup & Ultra-Mobile-Responsive Glassmorphism Styling
 st.set_page_config(
-    page_title="Momo Fashion", page_icon="✨", layout="centered"
+    page_title="Momo Fashion",
+    page_icon="✨",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown(
@@ -26,27 +29,21 @@ st.markdown(
             background: var(--bg-gradient);
             background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            animation: fadeInApp 0.6s ease-out;
         }
 
-        @keyframes fadeInApp {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Mobile-Optimized Glowing Header */
+        /* Fast Lightweight Header Animation */
         .momo-header {
             text-align: center;
             font-size: clamp(2.2rem, 8vw, 3rem);
             font-weight: 800;
             background: linear-gradient(45deg, #ff1a75, #ff66b2, #ff3385, #ff1a75);
-            background-size: 300% 300%;
+            background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 20px;
             letter-spacing: -1px;
-            animation: gradientShift 6s ease infinite, fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            text-shadow: 0 10px 30px rgba(255, 51, 133, 0.15);
+            animation: gradientShift 8s ease infinite;
+            text-shadow: 0 5px 15px rgba(255, 51, 133, 0.1);
         }
 
         @keyframes gradientShift {
@@ -55,18 +52,16 @@ st.markdown(
             100% { background-position: 0% 50%; }
         }
 
-        /* Touch-Friendly Glass Cards */
+        /* Touch-Friendly Cards without heavy paint blocks */
         .order-card {
             background: var(--card-bg);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            padding: 18px;
-            border-radius: 18px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 16px;
+            border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.9);
-            margin-bottom: 14px;
-            box-shadow: 0 10px 30px rgba(255, 51, 133, 0.08);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 20px rgba(255, 51, 133, 0.06);
             position: relative;
             overflow: hidden;
         }
@@ -78,49 +73,41 @@ st.markdown(
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(to bottom, #ff1a75, #ff66b2);
-            opacity: 0.8;
+            background: #ff1a75;
         }
 
-        .order-card:active {
-            transform: scale(0.98);
-        }
-
-        /* High-Impact Touch Buttons optimized for mobile tapping */
+        /* High-Impact Touch Buttons optimized for speed and response */
         div.stButton > button {
-            background: linear-gradient(135deg, #1a1a1a, #333333);
+            background: #1a1a1a;
             color: white;
-            border-radius: 14px;
+            border-radius: 12px;
             font-weight: 600;
             border: none;
             width: 100%;
-            padding: 14px;
+            padding: 12px;
             min-height: 48px;
             font-size: 1rem;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            transition: background 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         div.stButton > button:hover {
-            background: linear-gradient(135deg, #ff1a75, #ff3385);
+            background: #ff1a75;
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 51, 133, 0.3);
         }
 
         div.stButton > button:active {
-            transform: scale(0.96);
+            transform: scale(0.97);
         }
 
         /* Responsive Detail Card */
         .detail-card {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(10px);
             padding: 20px;
             border-radius: 20px;
             border: 1px solid #ffb3d1;
-            box-shadow: 0 15px 35px rgba(255, 51, 133, 0.12);
-            animation: scaleIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            box-shadow: 0 10px 30px rgba(255, 51, 133, 0.1);
         }
 
         /* Status Badge */
@@ -138,38 +125,23 @@ st.markdown(
         .status-fitting { background: #cce5ff; color: #004085; }
         .status-completed { background: #d4edda; color: #155724; }
 
-        /* Mobile inputs sizing adjustments */
         input, textarea, select {
-            font-size: 16px !important; /* Prevents auto-zoom on mobile safari/chrome */
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.97); }
-            to { opacity: 1; transform: scale(1); }
+            font-size: 16px !important;
         }
     </style>
 """,
     unsafe_allow_html=True,
 )
 
-# 2. Permanent Server-Side JSON Storage & Image Upload Folder
+# 2. Optimized Permanent Server-Side JSON Storage (Cached in Session State)
 DB_FILE = "momo_persistent_orders.json"
 UPLOAD_DIR = "momo_uploads"
 if not os.path.exists(UPLOAD_DIR):
   os.makedirs(UPLOAD_DIR)
 
 
-def load_orders():
+@st.cache_data(ttl=60)
+def load_orders_cached():
   if os.path.exists(DB_FILE):
     try:
       with open(DB_FILE, "r") as f:
@@ -181,11 +153,12 @@ def load_orders():
 
 def save_orders(orders_list):
   with open(DB_FILE, "w") as f:
-    json.dump(orders_list, f, indent=4)
+    json.dump(orders_list, f)  # Removed indent=4 for faster file writing
+  st.cache_data.clear()
 
 
 if "orders" not in st.session_state:
-  st.session_state.orders = load_orders()
+  st.session_state.orders = load_orders_cached()
 
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
@@ -314,7 +287,7 @@ if st.session_state.selected_order_id is not None:
     st.rerun()
 
 else:
-  # Main Mobile-Optimized App Interface
+  # Main Ultra-Fast Interface
   st.markdown(
       '<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True
   )
@@ -424,7 +397,7 @@ else:
 
   st.markdown("---")
 
-  # Search and Filter Toolbar for Touchscreens
+  # Search and Filter Toolbar
   search_term = st.text_input(
       "🔍 Search orders...", placeholder="Type name, phone, or notes..."
   ).lower()
@@ -432,6 +405,7 @@ else:
       "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
   )
 
+  # Fast filtering using list comprehensions
   filtered_orders = [
       o
       for o in st.session_state.orders
