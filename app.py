@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. Page Setup & Ultra-Bright Neon White/Cyan 3D Glow Styling
+# 1. Page Setup & Full Vibrant Pink Background with White Glowing Text Outlines
 st.set_page_config(
     page_title="Momo Fashion",
     page_icon="✨",
@@ -19,18 +19,18 @@ st.markdown(
 
         :root {
             --vibrant-pink: #ff1aff;
-            --glass-bg: rgba(255, 255, 255, 0.94);
-            --glass-border: rgba(255, 26, 255, 0.45);
-            --text-main: #1f1f1f;
+            --glass-bg: rgba(255, 255, 255, 0.12);
+            --glass-border: rgba(255, 255, 255, 0.35);
+            --text-main: #ffffff;
         }
 
         .stApp {
-            background: linear-gradient(135deg, #ffffff 0%, #fff0fd 50%, #ffe6fe 100%);
+            background: linear-gradient(135deg, #ff1aff 0%, #e600e6 50%, #b300b3 100%);
             background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* 3D Floating Glowing Header - Using exact image text style */
+        /* 3D Floating Glowing Header - Vibrant Pink Text with White Glow Outline */
         .momo-header {
             text-align: center;
             font-size: clamp(2.4rem, 8vw, 3.4rem);
@@ -38,17 +38,28 @@ st.markdown(
             color: #ff1aff;
             margin-bottom: 25px;
             letter-spacing: -1px;
-            text-shadow: 0 0 25px rgba(255, 26, 255, 0.7), 0 0 45px rgba(255, 26, 255, 0.3), 0 4px 10px rgba(0,0,0,0.1);
+            -webkit-text-stroke: 1.5px #ffffff;
+            text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 35px rgba(255, 255, 255, 0.8), 0 4px 15px rgba(0,0,0,0.3);
             animation: float3D 4s ease-in-out infinite;
             transform-style: preserve-3d;
         }
 
         @keyframes float3D {
-            0%, 100% { transform: translateY(0px) rotateX(0deg); text-shadow: 0 0 25px rgba(255, 26, 255, 0.7), 0 4px 10px rgba(0,0,0,0.1); }
-            50% { transform: translateY(-8px) rotateX(4deg); text-shadow: 0 0 35px rgba(255, 26, 255, 1), 0 10px 20px rgba(0,0,0,0.15); }
+            0%, 100% { transform: translateY(0px) rotateX(0deg); text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 35px rgba(255, 255, 255, 0.8), 0 4px 15px rgba(0,0,0,0.3); }
+            50% { transform: translateY(-8px) rotateX(4deg); text-shadow: 0 0 15px #ffffff, 0 0 30px #ffffff, 0 0 50px rgba(255, 255, 255, 1), 0 10px 25px rgba(0,0,0,0.4); }
         }
 
-        /* 3D Glassmorphism Cards with Neon Glow on White Background */
+        /* General Headings and Labels with White Glow Outline */
+        h1, h2, h3, h4, h5, h6, label, .stMarkdown p, span {
+            color: #ffffff;
+        }
+
+        h3, h2 {
+            -webkit-text-stroke: 0.5px #ffffff;
+            text-shadow: 0 0 8px #ffffff, 0 0 15px rgba(255, 255, 255, 0.6);
+        }
+
+        /* 3D Glassmorphism Cards on Full Pink Background */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(18px);
@@ -57,7 +68,7 @@ st.markdown(
             border-radius: 24px;
             padding: 22px;
             margin-bottom: 18px;
-            box-shadow: 0 15px 35px rgba(255, 26, 255, 0.12), 0 0 20px rgba(255, 26, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.15);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
@@ -66,8 +77,8 @@ st.markdown(
 
         .glass-card:hover {
             transform: perspective(1000px) translateY(-6px) rotateX(2deg) translateZ(10px);
-            box-shadow: 0 25px 50px rgba(255, 26, 255, 0.25), 0 0 35px rgba(255, 26, 255, 0.4);
-            border-color: #ff1aff;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 0 0 25px rgba(255, 255, 255, 0.4);
+            border-color: #ffffff;
         }
 
         .glass-card::before {
@@ -77,32 +88,34 @@ st.markdown(
             left: 0;
             width: 6px;
             height: 100%;
-            background: #ff1aff;
-            box-shadow: 0 0 15px #ff1aff;
+            background: #ffffff;
+            box-shadow: 0 0 15px #ffffff;
         }
 
-        /* 3D High-End Interactive Buttons with Glowing Animation */
+        /* 3D High-End Interactive Buttons with White Glow */
         div.stButton > button {
-            background: #ffffff;
-            color: #1a1a1a;
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
             border-radius: 16px;
             font-weight: 700;
-            border: 2px solid rgba(255, 26, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.6);
             width: 100%;
             padding: 14px;
             min-height: 52px;
             font-size: 1rem;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 8px 25px rgba(255, 26, 255, 0.15), 0 0 10px rgba(255, 26, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 10px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 8px #ffffff;
             transform: perspective(1000px) translateZ(0px);
         }
 
         div.stButton > button:hover {
-            background: #ff1aff;
-            color: #ffffff;
-            border-color: #ff1aff;
+            background: #ffffff;
+            color: #ff1aff;
+            border-color: #ffffff;
             transform: perspective(1000px) translateY(-4px) translateZ(15px);
-            box-shadow: 0 15px 35px rgba(255, 26, 255, 0.5), 0 0 25px rgba(255, 26, 255, 0.8);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 30px #ffffff;
+            text-shadow: none;
         }
 
         div.stButton > button:active {
@@ -118,52 +131,55 @@ st.markdown(
             font-weight: 700;
             letter-spacing: 0.6px;
             text-transform: uppercase;
-            box-shadow: 0 0 10px rgba(255, 26, 255, 0.2);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
         }
-        .status-pending { background: #ffe6ff; color: #ff1aff; border: 1px solid rgba(255, 26, 255, 0.4); }
-        .status-progress { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .status-fitting { background: #cce5ff; color: #004085; border: 1px solid #b8daff; }
-        .status-completed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-pending { background: rgba(255, 255, 255, 0.2); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.6); }
+        .status-progress { background: rgba(255, 193, 7, 0.3); color: #fff3cd; border: 1px solid #ffeeba; }
+        .status-fitting { background: rgba(0, 123, 255, 0.3); color: #cce5ff; border: 1px solid #b8daff; }
+        .status-completed { background: rgba(40, 167, 69, 0.3); color: #d4edda; border: 1px solid #c3e6cb; }
 
         /* Inputs & Fields */
         input, textarea, select {
             font-size: 16px !important;
             border-radius: 14px !important;
-            border: 2px solid rgba(255, 26, 255, 0.3) !important;
-            background: rgba(255, 255, 255, 0.95) !important;
+            border: 2px solid rgba(255, 255, 255, 0.5) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
             transition: all 0.25s ease !important;
         }
 
         input:focus, textarea:focus, select:focus {
-            border-color: #ff1aff !important;
-            box-shadow: 0 0 20px rgba(255, 26, 255, 0.4), 0 0 0 3px rgba(255, 26, 255, 0.2) !important;
-            background: #ffffff !important;
+            border-color: #ffffff !important;
+            box-shadow: 0 0 20px #ffffff, 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.25) !important;
         }
 
         /* Seamless Modern 3D Tabs */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.15);
             padding: 8px;
             border-radius: 20px;
             backdrop-filter: blur(15px);
-            box-shadow: 0 10px 30px rgba(255, 26, 255, 0.15), inset 0 0 15px rgba(255, 26, 255, 0.1);
-            border: 1px solid rgba(255, 26, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         .stTabs [data-baseweb="tab"] {
             height: 50px;
             border-radius: 14px;
             font-weight: 700;
-            color: #444444;
+            color: #ffffff;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
         }
 
         .stTabs [aria-selected="true"] {
-            background: #ff1aff !important;
-            color: #ffffff !important;
-            box-shadow: 0 8px 25px rgba(255, 26, 255, 0.6), inset 0 0 10px rgba(255,255,255,0.5);
-            text-shadow: 0 0 8px rgba(255,255,255,0.8);
+            background: #ffffff !important;
+            color: #ff1aff !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(255,255,255,0.8);
+            text-shadow: none;
+            -webkit-text-stroke: 0.5px #ff1aff;
         }
     </style>
 """,
@@ -216,13 +232,13 @@ needs_unlock = (
 if needs_unlock:
   st.markdown("---")
   st.markdown(
-      "<h2 style='text-align: center; color: #1a1a1a; text-shadow: 0 0 15px"
-      " #ff1aff;'>🔒 App Locked</h2>",
+      "<h2 style='text-align: center; color: #ffffff; text-shadow: 0 0 15px"
+      " #ffffff;'>🔒 App Locked</h2>",
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #555;'>New billing cycle started."
-      " Enter code to unlock.</p>",
+      "<p style='text-align: center; color: #f0f0f0;'>New billing cycle"
+      " started. Enter code to unlock.</p>",
       unsafe_allow_html=True,
   )
 
@@ -273,11 +289,11 @@ if st.session_state.selected_order_id is not None:
         f"""
         <div class="glass-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                <h3 style="margin:0; color: #1a1a1a; font-size: 1.3rem;">👤 {current_order['name']}</h3>
+                <h3 style="margin:0; color: #ffffff; font-size: 1.3rem;">👤 {current_order['name']}</h3>
                 <span class="status-badge {status_class}">{status}</span>
             </div>
-            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #333;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
-            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ff1aff; text-shadow: 0 0 8px rgba(255,26,255,0.4);"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ffffff; text-shadow: 0 0 8px #ffffff;"><b>📅 Due Date:</b> {current_order['date']}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -285,7 +301,7 @@ if st.session_state.selected_order_id is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        "<h3 style='color: #1a1a1a;'>💰 Financial Breakdown</h3>",
+        "<h3 style='color: #ffffff;'>💰 Financial Breakdown</h3>",
         unsafe_allow_html=True,
     )
     f_col1, f_col2, f_col3 = st.columns(3)
@@ -298,7 +314,7 @@ if st.session_state.selected_order_id is not None:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
-        "<h3 style='color: #1a1a1a;'>📝 Notes & Measurements</h3>",
+        "<h3 style='color: #ffffff;'>📝 Notes & Measurements</h3>",
         unsafe_allow_html=True,
     )
     st.info(
@@ -310,7 +326,7 @@ if st.session_state.selected_order_id is not None:
     img_path = current_order.get("image_path")
     if img_path and os.path.exists(img_path):
       st.markdown(
-          "<br><h3 style='color: #1a1a1a; font-size: 1.1rem;'>📸 Design /"
+          "<br><h3 style='color: #ffffff; font-size: 1.1rem;'>📸 Design /"
           " Swatch Reference</h3>",
           unsafe_allow_html=True,
       )
@@ -371,7 +387,7 @@ else:
         st.markdown(
             "<p"
             " style='margin-bottom:0px; font-weight:600; font-size:0.9rem;"
-            " color:#333;'>Due Date</p>",
+            " color:#ffffff;'>Due Date</p>",
             unsafe_allow_html=True,
         )
         col1, col2, col3 = st.columns(3)
@@ -500,10 +516,10 @@ else:
             f"""
             <div class="glass-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                    <h3 style="margin: 0; color: #1a1a1a; font-size: 1.15rem;">👤 {order['name']}</h3>
+                    <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;">👤 {order['name']}</h3>
                     <span class="status-badge {status_class}">{status}</span>
                 </div>
-                <p style="font-size: 0.9rem; color: #ff1aff; font-weight: 600; margin-bottom: 0px; text-shadow: 0 0 6px rgba(255,26,255,0.3);">📅 Due Date: {order['date']}</p>
+                <p style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 0px; text-shadow: 0 0 6px #ffffff;">📅 Due Date: {order['date']}</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -515,8 +531,8 @@ else:
 
   with tab_calc:
     st.markdown(
-        "<h3 style='color: #1a1a1a; text-align: center; margin-bottom: 15px;"
-        " text-shadow: 0 0 10px rgba(255,26,255,0.4);'>Momo Calculator</h3>",
+        "<h3 style='color: #ffffff; text-align: center; margin-bottom: 15px;"
+        " text-shadow: 0 0 10px #ffffff;'>Momo Calculator</h3>",
         unsafe_allow_html=True,
     )
 
@@ -539,13 +555,13 @@ else:
             .calc-box {
                 width: 100%;
                 max-width: 380px;
-                background: rgba(255, 255, 255, 0.95);
+                background: rgba(255, 255, 255, 0.15);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
                 padding: 22px;
                 border-radius: 28px;
-                box-shadow: 0 20px 50px rgba(255, 26, 255, 0.2), 0 0 25px rgba(255, 26, 255, 0.15);
-                border: 1px solid rgba(255, 26, 255, 0.4);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 25px rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.5);
                 transform: perspective(1000px) rotateX(2deg);
             }
             .calc-screen {
@@ -558,7 +574,7 @@ else:
                 font-weight: 700;
                 margin-bottom: 16px;
                 word-break: break-all;
-                box-shadow: inset 0 4px 12px rgba(0,0,0,0.8), 0 0 10px rgba(255, 26, 255, 0.3);
+                box-shadow: inset 0 4px 12px rgba(0,0,0,0.8), 0 0 10px rgba(255, 255, 255, 0.4);
                 letter-spacing: 1px;
                 min-height: 55px;
             }
@@ -568,32 +584,34 @@ else:
                 gap: 10px;
             }
             .calc-btn {
-                background: #ffffff;
-                color: #1a1a1a;
+                background: rgba(255, 255, 255, 0.2);
+                color: #ffffff;
                 font-size: 1.25rem;
                 font-weight: 700;
                 border-radius: 16px;
                 min-height: 56px;
-                border: 2px solid rgba(255, 26, 255, 0.3);
+                border: 2px solid rgba(255, 255, 255, 0.4);
                 cursor: pointer;
                 transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 6px 15px rgba(255, 26, 255, 0.1), 0 0 5px rgba(255, 26, 255, 0.1);
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2), 0 0 5px rgba(255, 255, 255, 0.2);
+                text-shadow: 0 0 6px #ffffff;
                 user-select: none;
                 transform: perspective(1000px) translateZ(0px);
             }
             .calc-btn:hover {
-                background: #ff1aff;
-                color: #ffffff;
-                border-color: #ff1aff;
+                background: #ffffff;
+                color: #ff1aff;
+                border-color: #ffffff;
                 transform: perspective(1000px) translateY(-3px) translateZ(10px);
-                box-shadow: 0 10px 25px rgba(255, 26, 255, 0.5), 0 0 15px rgba(255, 26, 255, 0.8);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 20px #ffffff;
+                text-shadow: none;
             }
             .calc-btn:active {
                 transform: scale(0.93) translateY(0);
-                background: #d000db;
+                background: #e0e0e0;
             }
             .span-2 {
                 grid-column: span 2;
