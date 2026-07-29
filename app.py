@@ -242,9 +242,6 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
-if "auto_whatsapp" not in st.session_state:
-  st.session_state.auto_whatsapp = True
-
 
 def trigger_confetti():
   components.html(
@@ -257,29 +254,6 @@ def trigger_confetti():
                 origin: { y: 0.6 },
                 colors: ['#ffffff', '#ff1aff', '#ff66cc', '#ff99ff']
             });
-        </script>
-        """,
-      height=0,
-  )
-
-
-def clean_phone(phone_str):
-  if not phone_str:
-    return ""
-  digits = "".join(filter(str.isdigit, phone_str))
-  return digits
-
-
-def trigger_whatsapp_popup(phone, message):
-  clean_num = clean_phone(phone)
-  if not clean_num:
-    return
-  encoded_msg = message.replace(" ", "%20").replace("\n", "%0A")
-  wa_url = f"https://wa.me/{clean_num}?text={encoded_msg}"
-  components.html(
-      f"""
-        <script>
-            window.open("{wa_url}", "_blank");
         </script>
         """,
       height=0,
@@ -322,7 +296,6 @@ if st.session_state.selected_order_id is not None:
     }.get(status, "status-pending")
 
     phone_val = current_order.get("phone", "")
-    clean_num = clean_phone(phone_val)
 
     st.markdown(
         f"""
@@ -337,39 +310,6 @@ if st.session_state.selected_order_id is not None:
         """,
         unsafe_allow_html=True,
     )
-
-    if clean_num:
-      st.markdown(
-          "<h3 style='color: #ffffff; font-size: 1.1rem;'>💬 Quick WhatsApp"
-          " Actions</h3>",
-          unsafe_allow_html=True,
-      )
-      wa_col1, wa_col2 = st.columns(2)
-      with wa_col1:
-        custom_msg = f"Hello {current_order['name']}, regarding your order at Momo Fashion due on {current_order['date']}: "
-        wa_link = f"https://wa.me/{clean_num}?text={custom_msg.replace(' ', '%20')}"
-        st.markdown(
-            f'<a href="{wa_link}" target="_blank"><button'
-            ' style="background: rgba(37, 211, 102, 0.3); color: #ffffff;'
-            " border: 2px solid #25D366; border-radius: 14px; padding: 12px;"
-            " font-weight: 700; width: 100%; text-align: center; display:"
-            ' block; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2);'
-            ' text-shadow: 0 0 8px #ffffff;">🟢 Chat on WhatsApp</button></a>',
-            unsafe_allow_html=True,
-        )
-      with wa_col2:
-        status_msg = f"Hi {current_order['name']}, your order status has been updated to: *{status}*. Thank you for choosing Momo Fashion!"
-        ready_link = f"https://wa.me/{clean_num}?text={status_msg.replace(' ', '%20').replace(chr(10), '%0A')}"
-        st.markdown(
-            f'<a href="{ready_link}" target="_blank"><button'
-            ' style="background: rgba(255, 255, 255, 0.9); color: #ff1aff;'
-            " border: 2px solid #ffffff; border-radius: 14px; padding: 12px;"
-            " font-weight: 700; width: 100%; text-align: center; display:"
-            ' block; text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2);'
-            ' text-shadow: none;">🚀 Send Status Message</button></a>',
-            unsafe_allow_html=True,
-        )
-      st.markdown("<br>", unsafe_allow_html=True)
 
     st.markdown(
         "<h3 style='color: #ffffff;'>⚡ Update Status</h3>",
@@ -393,19 +333,6 @@ if st.session_state.selected_order_id is not None:
     if new_status_val != status:
       current_order["status"] = new_status_val
       save_orders(st.session_state.orders)
-
-      if (
-          st.session_state.auto_whatsapp
-          and new_status_val != "Pending"
-          and clean_num
-      ):
-        msg = f"Your Order Is Ready to Dispatch! Hi {current_order['name']}, your order status is now *{new_status_val}* (Due: {current_order['date']}). Thank you for choosing Momo Fashion! ✨"
-        if new_status_val == "Completed":
-          msg = f"Your Order Is Completed! Hi {current_order['name']}, your order is ready for pickup/delivery. Thank you for choosing Momo Fashion! ✨"
-        elif new_status_val == "In Progress":
-          msg = f"Hi {current_order['name']}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨"
-        trigger_whatsapp_popup(phone_val, msg)
-
       st.success(f"Status updated to {new_status_val}!")
       st.rerun()
 
@@ -466,36 +393,13 @@ else:
       '<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True
   )
 
-  with st.expander("⚙️ WhatsApp Automation Settings & Quick Info", expanded=False):
-    st.markdown(
-        "<p style='color: #ffffff; font-weight: 600;'>Configure automated"
-        " WhatsApp messaging when order status changes away from Pending.</p>",
-        unsafe_allow_html=True,
-    )
-    st.session_state.auto_whatsapp = st.checkbox(
-        "Enable Automatic WhatsApp Status Messages",
-        value=st.session_state.auto_whatsapp,
-    )
-    if st.session_state.auto_whatsapp:
-      st.success(
-          "Auto-messaging is active: changing status to 'In Progress',"
-          " 'Ready to Dispatch', or 'Completed' will prompt WhatsApp instantly."
-      )
-    else:
-      st.warning(
-          "Auto-messaging is disabled. You can still message customers manually"
-          " via chat buttons."
-      )
-
   tab_orders, tab_calc = st.tabs(["🛍️ Orders & Management", "🧮 Calculator"])
 
   with tab_orders:
     with st.expander("➕ Add New Order", expanded=False):
       with st.form("order_form", clear_on_submit=True):
         customer_name = st.text_input("Customer Name")
-        phone_number = st.text_input(
-            "Phone Number (e.g., +923001234567 for WhatsApp)"
-        )
+        phone_number = st.text_input("Phone Number (Optional)")
 
         col_p1, col_p2 = st.columns(2)
         with col_p1:
@@ -560,7 +464,9 @@ else:
               label_visibility="collapsed",
           )
 
-        order_notes = st.text_area("Measurements, design details, notes...")
+        order_notes = st.text_area(
+            "Measurements, design details, notes (Phone number optional here)"
+        )
         uploaded_file = st.file_uploader(
             "Upload Reference Photo / Swatch", type=["png", "jpg", "jpeg"]
         )
@@ -604,7 +510,6 @@ else:
     st.markdown("---")
 
     orders_json_string = json.dumps(st.session_state.orders)
-    auto_wa_flag = "true" if st.session_state.auto_whatsapp else "false"
 
     html_template = """
         <!DOCTYPE html>
@@ -808,26 +713,6 @@ else:
                 color: #ffffff;
                 box-shadow: 0 0 20px #ff4d4d;
             }
-            .whatsapp-btn {
-                background: rgba(37, 211, 102, 0.3);
-                color: #ffffff;
-                border: 2px solid #25D366;
-                padding: 10px 16px;
-                border-radius: 12px;
-                font-weight: 700;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                transition: all 0.2s ease;
-            }
-            .whatsapp-btn:hover {
-                background: #25D366;
-                color: #ffffff;
-                box-shadow: 0 0 20px #25D366;
-            }
             .barcode-container {
                 background: #ffffff;
                 padding: 10px;
@@ -868,7 +753,6 @@ else:
             <script>
                 const serverOrders = __ORDERS_JSON__;
                 const storageKey = "momo_permanent_client_orders_v1";
-                const autoWaEnabled = __AUTO_WA_FLAG__;
                 
                 function getOrders() {
                     const localData = localStorage.getItem(storageKey);
@@ -896,11 +780,6 @@ else:
                     renderOrders();
                 }
 
-                function cleanPhone(phone) {
-                    if (!phone) return "";
-                    return phone.replace(/\\D/g, '');
-                }
-
                 function updateOrderField(id, field, value) {
                     const idx = orders.findIndex(o => o.id === id);
                     if (idx !== -1) {
@@ -915,23 +794,9 @@ else:
                     if (noteEl && statusEl) {
                         const idx = orders.findIndex(o => o.id === id);
                         if (idx !== -1) {
-                            const newStatus = statusEl.value;
-                            
                             orders[idx].notes = noteEl.value;
-                            orders[idx].status = newStatus;
+                            orders[idx].status = statusEl.value;
                             localStorage.setItem(storageKey, JSON.stringify(orders));
-
-                            const phoneNum = cleanPhone(orders[idx].phone);
-                            if (autoWaEnabled && newStatus !== "Pending" && phoneNum) {
-                                let msg = `Your Order Is Ready to Dispatch! Hi ${orders[idx].name}, your order status is now *${newStatus}* (Due: ${orders[idx].date}). Thank you for choosing Momo Fashion! ✨`;
-                                if (newStatus === "Completed") {
-                                    msg = `Your Order Is Completed! Hi ${orders[idx].name}, your order is ready for pickup/delivery. Thank you for choosing Momo Fashion! ✨`;
-                                } else if (newStatus === "In Progress") {
-                                    msg = `Hi ${orders[idx].name}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨`;
-                                }
-                                window.open(`https://wa.me/${phoneNum}?text=` + encodeURIComponent(msg), '_blank');
-                            }
-
                             renderOrders();
                         }
                     }
@@ -985,11 +850,8 @@ else:
                     filtered.forEach(o => {
                         const badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
                         const shortId = String(o.id).slice(-6);
-                        const phoneNum = cleanPhone(o.phone);
                         const customerNameSafe = o.name || 'Customer';
                         const orderDateSafe = o.date || 'N/A';
-                        const defaultText = "Hello " + customerNameSafe + ", regarding your order at Momo Fashion due on " + orderDateSafe + ": ";
-                        const waLink = phoneNum ? "https://wa.me/" + phoneNum + "?text=" + encodeURIComponent(defaultText) : '#';
 
                         html += `
                             <div class="glass-card">
@@ -1015,7 +877,6 @@ else:
                                     </select>
                                     <button class="save-note-btn" onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
                                     <button class="delete-note-btn" onclick="deleteNote('${o.id}')">🗑️ Delete Note</button>
-                                    ${phoneNum ? `<a href="${waLink}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}
                                 </div>
                             </div>
                         `;
@@ -1042,10 +903,7 @@ else:
         </html>
         """
 
-    final_html = (
-        html_template.replace("__ORDERS_JSON__", orders_json_string)
-        .replace("__AUTO_WA_FLAG__", auto_wa_flag)
-    )
+    final_html = html_template.replace("__ORDERS_JSON__", orders_json_string)
     components.html(final_html, height=700)
 
   with tab_calc:
