@@ -607,27 +607,27 @@ else:
     auto_wa_flag = "true" if st.session_state.auto_whatsapp else "false"
 
     components.html(
-        f"""
+        """
         <!DOCTYPE html>
         <html>
         <head>
         <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-            body {{
+            body {
                 font-family: 'Plus Jakarta Sans', sans-serif;
                 background: transparent;
                 margin: 0;
                 padding: 10px;
                 color: #ffffff;
-            }}
-            .toolbar {{
+            }
+            .toolbar {
                 display: flex;
                 gap: 12px;
                 margin-bottom: 20px;
                 flex-wrap: wrap;
-            }}
-            .search-input, .sort-select {{
+            }
+            .search-input, .sort-select {
                 flex: 1;
                 min-width: 200px;
                 padding: 14px 18px;
@@ -639,17 +639,17 @@ else:
                 color: #ff1aff;
                 outline: none;
                 box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            }}
-            .search-input::placeholder {{
+            }
+            .search-input::placeholder {
                 color: #ff66cc;
                 opacity: 0.8;
-            }}
-            .search-input:focus, .sort-select:focus {{
+            }
+            .search-input:focus, .sort-select:focus {
                 border-color: #ffffff;
                 box-shadow: 0 0 25px #ffffff;
                 background: #ffffff;
-            }}
-            .tabs-header {{
+            }
+            .tabs-header {
                 display: flex;
                 gap: 8px;
                 background: rgba(255, 255, 255, 0.2);
@@ -659,8 +659,8 @@ else:
                 border: 1px solid rgba(255, 255, 255, 0.5);
                 margin-bottom: 20px;
                 overflow-x: auto;
-            }}
-            .tab-btn {{
+            }
+            .tab-btn {
                 flex: 1;
                 min-width: 120px;
                 height: 48px;
@@ -673,15 +673,15 @@ else:
                 transition: all 0.25s ease;
                 text-shadow: 0 0 8px #ffffff;
                 font-size: 0.95rem;
-            }}
-            .tab-btn.active {{
+            }
+            .tab-btn.active {
                 background: #ffffff;
                 color: #ff1aff;
                 box-shadow: 0 8px 25px rgba(0,0,0,0.3);
                 text-shadow: none;
                 transform: scale(1.03);
-            }}
-            .glass-card {{
+            }
+            .glass-card {
                 background: rgba(255, 255, 255, 0.18);
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
@@ -692,8 +692,8 @@ else:
                 box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
                 position: relative;
                 overflow: hidden;
-            }}
-            .glass-card::before {{
+            }
+            .glass-card::before {
                 content: '';
                 position: absolute;
                 top: 0;
@@ -702,22 +702,22 @@ else:
                 height: 100%;
                 background: #ffffff;
                 box-shadow: 0 0 15px #ffffff;
-            }}
-            .card-header {{
+            }
+            .card-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 10px;
                 flex-wrap: wrap;
                 gap: 8px;
-            }}
-            .card-title {{
+            }
+            .card-title {
                 margin: 0;
                 font-size: 1.2rem;
                 font-weight: 800;
                 color: #ffffff;
-            }}
-            .status-badge {{
+            }
+            .status-badge {
                 display: inline-block;
                 padding: 6px 14px;
                 border-radius: 30px;
@@ -726,20 +726,20 @@ else:
                 letter-spacing: 0.6px;
                 text-transform: uppercase;
                 box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            }}
-            .status-Pending {{ background: rgba(255, 255, 255, 0.3); color: #ffffff; border: 1px solid #ffffff; }}
-            .status-In-Progress {{ background: rgba(255, 193, 7, 0.4); color: #fff3cd; border: 1px solid #ffeeba; }}
-            .status-Ready-to-Dispatch {{ background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }}
-            .status-Completed {{ background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }}
+            }
+            .status-Pending { background: rgba(255, 255, 255, 0.3); color: #ffffff; border: 1px solid #ffffff; }
+            .status-In-Progress { background: rgba(255, 193, 7, 0.4); color: #fff3cd; border: 1px solid #ffeeba; }
+            .status-Ready-to-Dispatch { background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }
+            .status-Completed { background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }
 
-            .meta-text {{
+            .meta-text {
                 font-size: 0.9rem;
                 font-weight: 600;
                 color: #ffffff;
                 margin-bottom: 12px;
                 text-shadow: 0 0 8px #ffffff;
-            }}
-            .notes-textarea {{
+            }
+            .notes-textarea {
                 width: 100%;
                 min-height: 90px;
                 padding: 12px;
@@ -753,20 +753,20 @@ else:
                 box-sizing: border-box;
                 outline: none;
                 margin-bottom: 10px;
-            }}
-            .notes-textarea:focus {{
+            }
+            .notes-textarea:focus {
                 border-color: #ffffff;
                 background: #ffffff;
                 box-shadow: 0 0 20px #ffffff;
-            }}
-            .action-row {{
+            }
+            .action-row {
                 display: flex;
                 gap: 10px;
                 align-items: center;
                 flex-wrap: wrap;
                 margin-top: 10px;
-            }}
-            .action-select {{
+            }
+            .action-select {
                 padding: 10px 14px;
                 border-radius: 12px;
                 border: 2px solid rgba(255, 255, 255, 0.6);
@@ -776,8 +776,8 @@ else:
                 font-size: 0.9rem;
                 outline: none;
                 cursor: pointer;
-            }}
-            .save-note-btn {{
+            }
+            .save-note-btn {
                 background: rgba(255, 255, 255, 0.9);
                 color: #ff1aff;
                 border: 2px solid #ffffff;
@@ -787,13 +787,29 @@ else:
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.2s ease;
-            }}
-            .save-note-btn:hover {{
+            }
+            .save-note-btn:hover {
                 background: #ff1aff;
                 color: #ffffff;
                 box-shadow: 0 0 20px #ff1aff;
-            }}
-            .whatsapp-btn {{
+            }
+            .delete-note-btn {
+                background: rgba(255, 77, 77, 0.3);
+                color: #ffffff;
+                border: 2px solid #ff4d4d;
+                padding: 10px 16px;
+                border-radius: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                transition: all 0.2s ease;
+            }
+            .delete-note-btn:hover {
+                background: #ff4d4d;
+                color: #ffffff;
+                box-shadow: 0 0 20px #ff4d4d;
+            }
+            .whatsapp-btn {
                 background: rgba(37, 211, 102, 0.3);
                 color: #ffffff;
                 border: 2px solid #25D366;
@@ -807,28 +823,28 @@ else:
                 gap: 6px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.2s ease;
-            }}
-            .whatsapp-btn:hover {{
+            }
+            .whatsapp-btn:hover {
                 background: #25D366;
                 color: #ffffff;
                 box-shadow: 0 0 20px #25D366;
-            }}
-            .barcode-container {{
+            }
+            .barcode-container {
                 background: #ffffff;
                 padding: 10px;
                 border-radius: 12px;
                 display: inline-block;
                 margin-top: 10px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            }}
-            .empty-state {{
+            }
+            .empty-state {
                 text-align: center;
                 padding: 30px;
                 font-weight: 700;
                 color: #ffffff;
                 font-size: 1.1rem;
                 text-shadow: 0 0 10px #ffffff;
-            }}
+            }
         </style>
         </head>
         <body>
@@ -851,55 +867,55 @@ else:
             <div id="ordersContainer"></div>
 
             <script>
-                const serverOrders = {orders_json_string};
+                const serverOrders = %s;
                 const storageKey = "momo_permanent_client_orders_v1";
-                const autoWaEnabled = {auto_wa_flag};
+                const autoWaEnabled = %s;
                 
-                function getOrders() {{
+                function getOrders() {
                     const localData = localStorage.getItem(storageKey);
-                    if (localData) {{
-                        try {{
+                    if (localData) {
+                        try {
                             const parsed = JSON.parse(localData);
-                            if (Array.isArray(parsed) && parsed.length >= serverOrders.length) {{
+                            if (Array.isArray(parsed) && parsed.length >= serverOrders.length) {
                                 return parsed;
-                            }}
-                        }} catch(e) {{}}
-                    }}
+                            }
+                        } catch(e) {}
+                    }
                     localStorage.setItem(storageKey, JSON.stringify(serverOrders));
                     return serverOrders;
-                }}
+                }
 
                 let orders = getOrders();
                 let currentTab = "Pending";
 
-                function switchTab(tabName) {{
+                function switchTab(tabName) {
                     currentTab = tabName;
                     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
                     const activeBtnId = 'tab_' + tabName.replace(/ /g, '_');
                     const targetBtn = document.getElementById(activeBtnId);
                     if (targetBtn) targetBtn.classList.add('active');
                     renderOrders();
-                }}
+                }
 
-                function cleanPhone(phone) {{
+                function cleanPhone(phone) {
                     if (!phone) return "";
                     return phone.replace(/\\D/g, '');
-                }}
+                }
 
-                function updateOrderField(id, field, value) {{
+                function updateOrderField(id, field, value) {
                     const idx = orders.findIndex(o => o.id === id);
-                    if (idx !== -1) {{
+                    if (idx !== -1) {
                         orders[idx][field] = value;
                         localStorage.setItem(storageKey, JSON.stringify(orders));
-                    }}
-                }}
+                    }
+                }
 
-                function saveNoteAndStatus(id) {{
+                function saveNoteAndStatus(id) {
                     const noteEl = document.getElementById('note_' + id);
                     const statusEl = document.getElementById('status_' + id);
-                    if (noteEl && statusEl) {{
+                    if (noteEl && statusEl) {
                         const idx = orders.findIndex(o => o.id === id);
-                        if (idx !== -1) {{
+                        if (idx !== -1) {
                             const newStatus = statusEl.value;
                             
                             orders[idx].notes = noteEl.value;
@@ -907,27 +923,39 @@ else:
                             localStorage.setItem(storageKey, JSON.stringify(orders));
 
                             const phoneNum = cleanPhone(orders[idx].phone);
-                            if (autoWaEnabled && newStatus !== "Pending" && phoneNum) {{
-                                let msg = `Your Order Is Ready to Dispatch! Hi ${{orders[idx].name}}, your order status is now *${{newStatus}}* (Due: ${{orders[idx].date}}). Thank you for choosing Momo Fashion! ✨`;
-                                if (newStatus === "Completed") {{
-                                    msg = `Your Order Is Completed! Hi ${{orders[idx].name}}, your order is ready for pickup/delivery. Thank you for choosing Momo Fashion! ✨`;
-                                }} else if (newStatus === "In Progress") {{
-                                    msg = `Hi ${{orders[idx].name}}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨`;
-                                }}
-                                window.open(`https://wa.me/${{phoneNum}}?text=` + encodeURIComponent(msg), '_blank');
-                            }}
+                            if (autoWaEnabled && newStatus !== "Pending" && phoneNum) {
+                                let msg = `Your Order Is Ready to Dispatch! Hi ${orders[idx].name}, your order status is now *${newStatus}* (Due: ${orders[idx].date}). Thank you for choosing Momo Fashion! ✨`;
+                                if (newStatus === "Completed") {
+                                    msg = `Your Order Is Completed! Hi ${orders[idx].name}, your order is ready for pickup/delivery. Thank you for choosing Momo Fashion! ✨`;
+                                } else if (newStatus === "In Progress") {
+                                    msg = `Hi ${orders[idx].name}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨`;
+                                }
+                                window.open(`https://wa.me/${phoneNum}?text=` + encodeURIComponent(msg), '_blank');
+                            }
 
                             renderOrders();
-                        }}
-                    }}
-                }}
+                        }
+                    }
+                }
 
-                function renderOrders() {{
+                function deleteNote(id) {
+                    const noteEl = document.getElementById('note_' + id);
+                    if (noteEl) {
+                        noteEl.value = '';
+                    }
+                    const idx = orders.findIndex(o => o.id === id);
+                    if (idx !== -1) {
+                        orders[idx].notes = '';
+                        localStorage.setItem(storageKey, JSON.stringify(orders));
+                    }
+                }
+
+                function renderOrders() {
                     const search = document.getElementById('searchInput').value.toLowerCase();
                     const sort = document.getElementById('sortSelect').value;
                     const container = document.getElementById('ordersContainer');
 
-                    const filtered = orders.filter(o => {{
+                    const filtered = orders.filter(o => {
                         const matchesTab = (o.status || "Pending") === currentTab;
                         const shortId = String(o.id).slice(-6);
                         const matchesSearch = (o.name || "").toLowerCase().includes(search) ||
@@ -935,27 +963,27 @@ else:
                                           (o.notes || "").toLowerCase().includes(search) ||
                                           shortId.includes(search);
                         return matchesTab && matchesSearch;
-                    }});
+                    });
 
-                    filtered.sort((a, b) => {{
-                        if (sort === 'due') {{
+                    filtered.sort((a, b) => {
+                        if (sort === 'due') {
                             const dateA = new Date(a.date || '01/01/2026');
                             const dateB = new Date(b.date || '01/01/2026');
                             return dateA - dateB;
-                        }} else if (sort === 'newest') {{
+                        } else if (sort === 'newest') {
                             return parseFloat(b.id || 0) - parseFloat(a.id || 0);
-                        }} else {{
+                        } else {
                             return (a.name || "").localeCompare(b.name || "");
-                        }}
-                    }});
+                        }
+                    });
 
-                    if (filtered.length === 0) {{
-                        container.innerHTML = `<div class="empty-state">No ${{currentTab.toLowerCase()}} orders found.</div>`;
+                    if (filtered.length === 0) {
+                        container.innerHTML = `<div class="empty-state">No ${currentTab.toLowerCase()} orders found.</div>`;
                         return;
-                    }}
+                    }
 
                     let html = '';
-                    filtered.forEach(o => {{
+                    filtered.forEach(o => {
                         const badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
                         const shortId = String(o.id).slice(-6);
                         const phoneNum = cleanPhone(o.phone);
@@ -967,52 +995,54 @@ else:
                         html += `
                             <div class="glass-card">
                                 <div class="card-header">
-                                    <h3 class="card-title">👤 ${{customerNameSafe}} (ID: #${{shortId}})</h3>
-                                    <span class="status-badge ${{badgeClass}}">${{o.status || 'Pending'}}</span>
+                                    <h3 class="card-title">👤 ${customerNameSafe} (ID: #${shortId})</h3>
+                                    <span class="status-badge ${badgeClass}">${o.status || 'Pending'}</span>
                                 </div>
-                                <div class="meta-text">📞 Phone: ${{o.phone || 'None'}} &nbsp;|&nbsp; 📅 Due Date: ${{orderDateSafe}}</div>
+                                <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${orderDateSafe}</div>
                                 
                                 <div style="margin-bottom: 12px;">
                                     <div class="barcode-container">
-                                        <svg id="barcode_${{o.id}}"></svg>
+                                        <svg id="barcode_${o.id}"></svg>
                                     </div>
                                 </div>
 
-                                <textarea id="note_${{o.id}}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${{o.id}}', 'notes', this.value)">${{o.notes || ''}}</textarea>
+                                <textarea id="note_${o.id}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${o.id}', 'notes', this.value)">${o.notes || ''}</textarea>
                                 <div class="action-row">
-                                    <select id="status_${{o.id}}" class="action-select" onchange="updateOrderField('${{o.id}}', 'status', this.value)">
-                                        <option value="Pending" ${{o.status === 'Pending' ? 'selected' : ''}}>⏳ Pending</option>
-                                        <option value="In Progress" ${{o.status === 'In Progress' ? 'selected' : ''}}>🚀 In Progress</option>
-                                        <option value="Ready to Dispatch" ${{o.status === 'Ready to Dispatch' ? 'selected' : ''}}>📦 Ready to Dispatch</option>
-                                        <option value="Completed" ${{o.status === 'Completed' ? 'selected' : ''}}>✅ Completed</option>
+                                    <select id="status_${o.id}" class="action-select" onchange="updateOrderField('${o.id}', 'status', this.value)">
+                                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
+                                        <option value="In Progress" ${o.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
+                                        <option value="Ready to Dispatch" ${o.status === 'Ready to Dispatch' ? 'selected' : ''}>📦 Ready to Dispatch</option>
+                                        <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
                                     </select>
-                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${{o.id}}')">💾 Save Note & Status</button>
-                                    ${{phoneNum ? `<a href="${{waLink}}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}}
+                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
+                                    <button class="delete-note-btn" onclick="deleteNote('${o.id}')">🗑️ Delete Note</button>
+                                    ${phoneNum ? `<a href="${waLink}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}
                                 </div>
                             </div>
                         `;
-                    }});
+                    });
                     container.innerHTML = html;
 
-                    filtered.forEach(o => {{
+                    filtered.forEach(o => {
                         const shortId = String(o.id).slice(-6);
-                        try {{
-                            JsBarcode("#barcode_" + o.id, shortId, {{
+                        try {
+                            JsBarcode("#barcode_" + o.id, shortId, {
                                 format: "CODE128",
                                 width: 1.5,
                                 height: 40,
                                 displayValue: true,
                                 fontSize: 12
-                            }});
-                        }} catch(e) {{}}
-                    }});
-                }}
+                            });
+                        } catch(e) {}
+                    });
+                }
 
                 renderOrders();
             </script>
         </body>
         </html>
-        """,
+        """
+        % (orders_json_string, auto_wa_flag),
         height=700,
     )
 
