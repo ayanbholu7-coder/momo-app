@@ -209,8 +209,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 2. Permanent Server-Side JSON Storage
+# 2. Permanent Server-Side JSON Storage & Admin Config
 DB_FILE = "momo_persistent_orders.json"
+ADMIN_CONFIG_FILE = "momo_admin_config.json"
 UPLOAD_DIR = "momo_uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
@@ -241,11 +242,48 @@ def save_orders(orders_list):
         json.dump(cleaned_list, f)
     st.cache_data.clear()
 
+def load_admin_config():
+    default_config = {"is_locked": False, "unlock_code": "1234"}
+    if os.path.exists(ADMIN_CONFIG_FILE):
+        try:
+            with open(ADMIN_CONFIG_FILE, "r") as f:
+                return {**default_config, **json.load(f)}
+        except:
+            return default_config
+    return default_config
+
+def save_admin_config(config):
+    with open(ADMIN_CONFIG_FILE, "w") as f:
+        json.dump(config, f)
+
 if "orders" not in st.session_state:
     st.session_state.orders = load_orders_cached()
 
 if "selected_order_id" not in st.session_state:
     st.session_state.selected_order_id = None
+
+# Global Lock Check
+admin_config = load_admin_config()
+if admin_config.get("is_locked", False) and not st.session_state.get("user_unlocked", False):
+    st.markdown('<div class="momo-header">🔒 APP LOCKED 🔒</div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="glass-card" style="text-align: center;">
+        <h3>The application is currently locked by the administrator.</h3>
+        <p>Please enter the unlock code to continue using Momo Fashion.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    with st.form("unlock_form"):
+        entered_unlock_code = st.text_input("Enter Unlock Code", type="password")
+        unlock_submitted = st.form_submit_button("Unlock App")
+        if unlock_submitted:
+            if entered_unlock_code == admin_config.get("unlock_code", "1234"):
+                st.session_state.user_unlocked = True
+                st.success("App unlocked successfully!")
+                st.rerun()
+            else:
+                st.error("Incorrect unlock code. Please try again.")
+    st.stop()
 
 def trigger_confetti():
     components.html("""
@@ -345,7 +383,7 @@ if st.session_state.selected_order_id is not None:
 else:
     st.markdown('<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True)
 
-    tab_orders, tab_calc = st.tabs(["🛍️ Orders & Management", "🧮 Calculator"])
+    tab_orders, tab_calc, tab_admin = st.tabs(["🛍️ Orders & Management", "🧮 Calculator", "👑 Admin Panel"])
 
     with tab_orders:
         with st.expander("➕ Add New Order", expanded=False):
@@ -621,3 +659,38 @@ else:
         </body>
         </html>
         """, height=420)
+
+    with tab_admin:
+        st.markdown("<h3 style='color: #ffffff; text-align: center; margin-bottom: 15px; text-shadow: 0 0 15px #ffffff;'>👑 Admin Panel</h3>", unsafe_allow_html=True)
+        
+        if not st.session_state.get("admin_logged_in", False):
+            with st.form("admin_login_form"):
+                admin_pass_input = st.text_input("Enter Admin Password", type="password")
+                admin_login_submitted = st.form_submit_button("Login")
+                if admin_login_submitted:
+                    if admin_pass_input == "123312":
+                        st.session_state.admin_logged_in = True
+                        st.success("Admin login successful!")
+                        st.rerun()
+                    else:
+                        st.error("Incorrect admin password. Please try again.")
+        else:
+            st.success("Authenticated as Administrator")
+            if st.button("Logout Admin"):
+                st.session_state.admin_logged_in = False
+                st.rerun()
+                
+            st.markdown("---")
+            current_admin_config = load_admin_config()
+            
+            with st.form("admin_config_form"):
+                is_globally_locked = st.toggle("🔒 Lock App for Everyone", value=current_admin_config.get("is_locked", False))
+                new_unlock_code = st.text_input("Current Unlock Code (Edit to change)", value=current_admin_config.get("unlock_code", "1234"))
+                
+                admin_save_sub = st.form_submit_button("Save Admin Settings")
+                if admin_save_sub:
+                    current_admin_config["is_locked"] = is_globally_locked
+                    current_admin_config["unlock_code"] = new_unlock_code
+                    save_admin_config(current_admin_config)
+                    st.success("Admin settings updated successfully!")
+                    st.rerun()
