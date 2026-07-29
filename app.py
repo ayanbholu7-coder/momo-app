@@ -645,19 +645,20 @@ else:
             }
             .notes-textarea {
                 width: 100%;
-                min-height: 100px;
-                padding: 16px;
-                border-radius: 14px;
+                min-height: 55px;
+                max-height: 120px;
+                padding: 8px 12px;
+                border-radius: 12px;
                 border: 2px solid rgba(255, 255, 255, 0.6);
                 background: rgba(255, 255, 255, 0.9);
                 color: #ff1aff;
                 font-weight: 700;
-                font-size: 0.95rem;
-                line-height: 1.4;
+                font-size: 0.9rem;
+                line-height: 1.3;
                 resize: vertical;
                 box-sizing: border-box;
                 outline: none;
-                margin-bottom: 12px;
+                margin-bottom: 10px;
             }
             .notes-textarea::placeholder {
                 color: #ff66cc;
@@ -807,17 +808,10 @@ else:
                     }
                 }
 
-                function deleteNote(id) {
-                    const noteEl = document.getElementById('note_' + id);
-                    if (noteEl) {
-                        noteEl.value = '';
-                    }
-                    const idx = orders.findIndex(o => o.id === id);
-                    if (idx !== -1) {
-                        orders[idx].notes = '';
-                        localStorage.setItem(storageKey, JSON.stringify(orders));
-                        renderOrders();
-                    }
+                function deleteOrderRecord(id) {
+                    orders = orders.filter(o => o.id !== id);
+                    localStorage.setItem(storageKey, JSON.stringify(orders));
+                    renderOrders();
                 }
 
                 function renderOrders() {
@@ -882,7 +876,7 @@ else:
                                         <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
                                     </select>
                                     <button class="save-note-btn" onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
-                                    <button class="delete-note-btn" onclick="deleteNote('${o.id}')">🗑️ Delete Note</button>
+                                    <button class="delete-note-btn" onclick="deleteOrderRecord('${o.id}')">🗑️ Delete Order</button>
                                 </div>
                             </div>
                         `;
