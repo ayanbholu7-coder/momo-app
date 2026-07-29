@@ -214,6 +214,7 @@ st.markdown(
 
 # 2. Optimized Permanent Server-Side JSON Storage
 DB_FILE = "momo_persistent_orders.json"
+LOCK_FILE = "momo_locked_months.json"
 UPLOAD_DIR = "momo_uploads"
 if not os.path.exists(UPLOAD_DIR):
   os.makedirs(UPLOAD_DIR)
@@ -231,13 +232,39 @@ def load_orders_cached():
 
 
 def save_orders(orders_list):
+  # Deduplicate by ID before saving to prevent any duplicates
+  unique_orders = {}
+  for o in orders_list:
+    unique_orders[o["id"]] = o
+  cleaned_list = list(unique_orders.values())
+
   with open(DB_FILE, "w") as f:
-    json.dump(orders_list, f)
+    json.dump(cleaned_list, f)
+  st.cache_data.clear()
+
+
+@st.cache_data(ttl=60)
+def load_locked_months_cached():
+  if os.path.exists(LOCK_FILE):
+    try:
+      with open(LOCK_FILE, "r") as f:
+        return json.load(f)
+    except:
+      return []
+  return []
+
+
+def save_locked_months(locked_list):
+  with open(LOCK_FILE, "w") as f:
+    json.dump(locked_list, f)
   st.cache_data.clear()
 
 
 if "orders" not in st.session_state:
   st.session_state.orders = load_orders_cached()
+
+if "locked_months" not in st.session_state:
+  st.session_state.locked_months = load_locked_months_cached()
 
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
@@ -262,6 +289,17 @@ def trigger_confetti():
 
 now = datetime.datetime.now()
 
+# Helper to get MM/YYYY from date string MM/DD/YYYY
+def get_month_year(date_str):
+  try:
+    parts = date_str.split("/")
+    if len(parts) == 3:
+      return f"{parts[0]}/{parts[2]}"
+  except:
+    pass
+  return ""
+
+
 # 4. Routing: Detail Page vs Main Dashboard
 if st.session_state.selected_order_id is not None:
   current_order = next(
@@ -282,6 +320,14 @@ if st.session_state.selected_order_id is not None:
         f'<div class="momo-header">✨ {current_order["name"]} ✨</div>',
         unsafe_allow_html=True,
     )
+
+    order_my = get_month_year(current_order.get("date", ""))
+    is_locked = order_my in st.session_state.locked_months
+
+    if is_locked:
+      st.warning(
+          f"🔒 This month ({order_my}) is locked. Records are read-only."
+      )
 
     total_p = current_order.get("total_price", 0.0)
     advance_p = current_order.get("advance_paid", 0.0)
@@ -329,8 +375,9 @@ if st.session_state.selected_order_id is not None:
         status_options,
         index=current_status_index,
         key=f"status_select_{current_order['id']}",
+        disabled=is_locked,
     )
-    if new_status_val != status:
+    if not is_locked and new_status_val != status:
       current_order["status"] = new_status_val
       save_orders(st.session_state.orders)
       st.success(f"Status updated to {new_status_val}!")
@@ -370,20 +417,23 @@ if st.session_state.selected_order_id is not None:
       st.image(img_path, caption="Reference Photo", use_container_width=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🗑️ Delete Order Record"):
-      if img_path and os.path.exists(img_path):
-        try:
-          os.remove(img_path)
-        except:
-          pass
-      st.session_state.orders = [
-          o
-          for o in st.session_state.orders
-          if o["id"] != st.session_state.selected_order_id
-      ]
-      save_orders(st.session_state.orders)
-      st.session_state.selected_order_id = None
-      st.rerun()
+    if not is_locked:
+      if st.button("🗑️ Delete Order Record"):
+        if img_path and os.path.exists(img_path):
+          try:
+            os.remove(img_path)
+          except:
+            pass
+        st.session_state.orders = [
+            o
+            for o in st.session_state.orders
+            if o["id"] != st.session_state.selected_order_id
+        ]
+        save_orders(st.session_state.orders)
+        st.session_state.selected_order_id = None
+        st.rerun()
+    else:
+      st.info("Deletion disabled because this month is locked.")
   else:
     st.session_state.selected_order_id = None
     st.rerun()
@@ -393,7 +443,11 @@ else:
       '<div class="momo-header">MOMO FASHION</div>', unsafe_allow_html=True
   )
 
-  tab_orders, tab_calc = st.tabs(["🛍️ Orders & Management", "🧮 Calculator"])
+  tab_orders, tab_lock, tab_calc = st.tabs([
+      "🛍️ Orders & Management",
+      "🔒 Monthly Lock",
+      "🧮 Calculator",
+  ])
 
   with tab_orders:
     with st.expander("➕ Add New Order", expanded=False):
@@ -478,38 +532,45 @@ else:
           else:
             month_index = months.index(month_val) + 1
             formatted_date = f"{month_index:02d}/{day_val:02d}/{year_val}"
+            new_my = f"{month_index:02d}/{year_val}"
 
-            saved_img_path = None
-            if uploaded_file is not None:
-              file_extension = uploaded_file.name.split(".")[-1]
-              file_name = (
-                  f"{datetime.datetime.now().timestamp()}_.{file_extension}"
+            if new_my in st.session_state.locked_months:
+              st.error(
+                  f"Cannot add order: Month {new_my} is currently locked!"
               )
-              saved_img_path = os.path.join(UPLOAD_DIR, file_name)
-              with open(saved_img_path, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+            else:
+              saved_img_path = None
+              if uploaded_file is not None:
+                file_extension = uploaded_file.name.split(".")[-1]
+                file_name = (
+                    f"{datetime.datetime.now().timestamp()}_.{file_extension}"
+                )
+                saved_img_path = os.path.join(UPLOAD_DIR, file_name)
+                with open(saved_img_path, "wb") as f:
+                  f.write(uploaded_file.getbuffer())
 
-            new_order_id = str(datetime.datetime.now().timestamp())
-            new_order = {
-                "id": new_order_id,
-                "name": customer_name,
-                "phone": phone_number,
-                "date": formatted_date,
-                "notes": order_notes,
-                "total_price": total_price,
-                "advance_paid": advance_paid,
-                "status": order_status,
-                "image_path": saved_img_path,
-            }
-            st.session_state.orders.insert(0, new_order)
-            save_orders(st.session_state.orders)
-            trigger_confetti()
-            st.success("Order & Barcode ID generated successfully!")
-            st.rerun()
+              new_order_id = str(datetime.datetime.now().timestamp())
+              new_order = {
+                  "id": new_order_id,
+                  "name": customer_name,
+                  "phone": phone_number,
+                  "date": formatted_date,
+                  "notes": order_notes,
+                  "total_price": total_price,
+                  "advance_paid": advance_paid,
+                  "status": order_status,
+                  "image_path": saved_img_path,
+              }
+              st.session_state.orders.insert(0, new_order)
+              save_orders(st.session_state.orders)
+              trigger_confetti()
+              st.success("Order & Barcode ID generated successfully!")
+              st.rerun()
 
     st.markdown("---")
 
     orders_json_string = json.dumps(st.session_state.orders)
+    locked_json_string = json.dumps(st.session_state.locked_months)
 
     html_template = """
         <!DOCTYPE html>
@@ -645,20 +706,20 @@ else:
             }
             .notes-textarea {
                 width: 100%;
-                min-height: 55px;
-                max-height: 120px;
-                padding: 8px 12px;
-                border-radius: 12px;
+                min-height: 40px;
+                max-height: 90px;
+                padding: 6px 10px;
+                border-radius: 10px;
                 border: 2px solid rgba(255, 255, 255, 0.6);
                 background: rgba(255, 255, 255, 0.9);
                 color: #ff1aff;
                 font-weight: 700;
-                font-size: 0.9rem;
-                line-height: 1.3;
+                font-size: 0.85rem;
+                line-height: 1.2;
                 resize: vertical;
                 box-sizing: border-box;
                 outline: none;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
             .notes-textarea::placeholder {
                 color: #ff66cc;
@@ -674,16 +735,16 @@ else:
                 gap: 10px;
                 align-items: center;
                 flex-wrap: wrap;
-                margin-top: 10px;
+                margin-top: 8px;
             }
             .action-select {
-                padding: 10px 14px;
-                border-radius: 12px;
+                padding: 8px 12px;
+                border-radius: 10px;
                 border: 2px solid rgba(255, 255, 255, 0.6);
                 background: #ffffff;
                 color: #ff1aff;
                 font-weight: 700;
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 outline: none;
                 cursor: pointer;
             }
@@ -691,12 +752,13 @@ else:
                 background: rgba(255, 255, 255, 0.9);
                 color: #ff1aff;
                 border: 2px solid #ffffff;
-                padding: 10px 18px;
-                border-radius: 12px;
+                padding: 8px 14px;
+                border-radius: 10px;
                 font-weight: 700;
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.2s ease;
+                font-size: 0.85rem;
             }
             .save-note-btn:hover {
                 background: #ff1aff;
@@ -707,12 +769,13 @@ else:
                 background: rgba(255, 77, 77, 0.3);
                 color: #ffffff;
                 border: 2px solid #ff4d4d;
-                padding: 10px 16px;
-                border-radius: 12px;
+                padding: 8px 12px;
+                border-radius: 10px;
                 font-weight: 700;
                 cursor: pointer;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 transition: all 0.2s ease;
+                font-size: 0.85rem;
             }
             .delete-note-btn:hover {
                 background: #ff4d4d;
@@ -721,10 +784,10 @@ else:
             }
             .barcode-container {
                 background: #ffffff;
-                padding: 10px;
-                border-radius: 12px;
+                padding: 8px;
+                border-radius: 10px;
                 display: inline-block;
-                margin-top: 10px;
+                margin-top: 6px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             }
             .empty-state {
@@ -734,6 +797,16 @@ else:
                 color: #ffffff;
                 font-size: 1.1rem;
                 text-shadow: 0 0 10px #ffffff;
+            }
+            .locked-banner {
+                background: rgba(255, 193, 7, 0.3);
+                border: 1px solid #ffeeba;
+                color: #fff3cd;
+                padding: 6px 12px;
+                border-radius: 10px;
+                font-size: 0.85rem;
+                font-weight: 700;
+                margin-bottom: 8px;
             }
         </style>
         </head>
@@ -758,24 +831,57 @@ else:
 
             <script>
                 const serverOrders = __ORDERS_JSON__;
-                const storageKey = "momo_permanent_client_orders_v1";
+                const serverLocked = __LOCKED_JSON__;
+                const storageKey = "momo_permanent_client_orders_v2";
+                const lockStorageKey = "momo_locked_months_v2";
                 
+                function getLockedMonths() {
+                    let set = new Set(serverLocked);
+                    const localData = localStorage.getItem(lockStorageKey);
+                    if (localData) {
+                        try {
+                            JSON.parse(localData).forEach(m => set.add(m));
+                        } catch(e) {}
+                    }
+                    return Array.from(set);
+                }
+
                 function getOrders() {
+                    let ordersMap = new Map();
+                    // Load server orders first as base
+                    serverOrders.forEach(o => ordersMap.set(o.id, o));
+                    
                     const localData = localStorage.getItem(storageKey);
                     if (localData) {
                         try {
                             const parsed = JSON.parse(localData);
-                            if (Array.isArray(parsed) && parsed.length >= serverOrders.length) {
-                                return parsed;
+                            if (Array.isArray(parsed)) {
+                                parsed.forEach(o => {
+                                    if (!ordersMap.has(o.id) || (o.notes && o.notes.length >= (ordersMap.get(o.id).notes || '').length)) {
+                                        ordersMap.set(o.id, o);
+                                    }
+                                });
                             }
                         } catch(e) {}
                     }
-                    localStorage.setItem(storageKey, JSON.stringify(serverOrders));
-                    return serverOrders;
+                    const combined = Array.from(ordersMap.values());
+                    localStorage.setItem(storageKey, JSON.stringify(combined));
+                    return combined;
                 }
 
                 let orders = getOrders();
+                let lockedMonths = getLockedMonths();
                 let currentTab = "Pending";
+
+                function getMonthYear(dateStr) {
+                    try {
+                        const parts = dateStr.split('/');
+                        if (parts.length === 3) {
+                            return parts[0] + '/' + parts[2];
+                        }
+                    } catch(e) {}
+                    return '';
+                }
 
                 function switchTab(tabName) {
                     currentTab = tabName;
@@ -789,6 +895,8 @@ else:
                 function updateOrderField(id, field, value) {
                     const idx = orders.findIndex(o => o.id === id);
                     if (idx !== -1) {
+                        const my = getMonthYear(orders[idx].date || '');
+                        if (lockedMonths.includes(my)) return; // Locked
                         orders[idx][field] = value;
                         localStorage.setItem(storageKey, JSON.stringify(orders));
                     }
@@ -800,6 +908,11 @@ else:
                     if (noteEl && statusEl) {
                         const idx = orders.findIndex(o => o.id === id);
                         if (idx !== -1) {
+                            const my = getMonthYear(orders[idx].date || '');
+                            if (lockedMonths.includes(my)) {
+                                alert("This month is locked. Cannot modify note.");
+                                return;
+                            }
                             orders[idx].notes = noteEl.value;
                             orders[idx].status = statusEl.value;
                             localStorage.setItem(storageKey, JSON.stringify(orders));
@@ -809,6 +922,14 @@ else:
                 }
 
                 function deleteOrderRecord(id) {
+                    const idx = orders.findIndex(o => o.id === id);
+                    if (idx !== -1) {
+                        const my = getMonthYear(orders[idx].date || '');
+                        if (lockedMonths.includes(my)) {
+                            alert("This month is locked. Cannot delete order.");
+                            return;
+                        }
+                    }
                     orders = orders.filter(o => o.id !== id);
                     localStorage.setItem(storageKey, JSON.stringify(orders));
                     renderOrders();
@@ -852,31 +973,34 @@ else:
                         const shortId = String(o.id).slice(-6);
                         const customerNameSafe = o.name || 'Customer';
                         const orderDateSafe = o.date || 'N/A';
+                        const my = getMonthYear(orderDateSafe);
+                        const isLocked = lockedMonths.includes(my);
 
                         html += `
                             <div class="glass-card">
+                                ${isLocked ? '<div class="locked-banner">🔒 Locked Month (' + my + ') - Read Only</div>' : ''}
                                 <div class="card-header">
                                     <h3 class="card-title">👤 ${customerNameSafe} (ID: #${shortId})</h3>
                                     <span class="status-badge ${badgeClass}">${o.status || 'Pending'}</span>
                                 </div>
                                 <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${orderDateSafe}</div>
                                 
-                                <div style="margin-bottom: 12px;">
+                                <div style="margin-bottom: 8px;">
                                     <div class="barcode-container">
                                         <svg id="barcode_${o.id}"></svg>
                                     </div>
                                 </div>
 
-                                <textarea id="note_${o.id}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${o.id}', 'notes', this.value)">${o.notes || ''}</textarea>
+                                <textarea id="note_${o.id}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." ${isLocked ? 'disabled' : ''} oninput="updateOrderField('${o.id}', 'notes', this.value)">${o.notes || ''}</textarea>
                                 <div class="action-row">
-                                    <select id="status_${o.id}" class="action-select" onchange="updateOrderField('${o.id}', 'status', this.value)">
+                                    <select id="status_${o.id}" class="action-select" ${isLocked ? 'disabled' : ''} onchange="updateOrderField('${o.id}', 'status', this.value)">
                                         <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
                                         <option value="In Progress" ${o.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
                                         <option value="Ready to Dispatch" ${o.status === 'Ready to Dispatch' ? 'selected' : ''}>📦 Ready to Dispatch</option>
                                         <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
                                     </select>
-                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
-                                    <button class="delete-note-btn" onclick="deleteOrderRecord('${o.id}')">🗑️ Delete Order</button>
+                                    <button class="save-note-btn" ${isLocked ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''} onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
+                                    <button class="delete-note-btn" ${isLocked ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''} onclick="deleteOrderRecord('${o.id}')">🗑️ Delete Note</button>
                                 </div>
                             </div>
                         `;
@@ -889,9 +1013,9 @@ else:
                             JsBarcode("#barcode_" + o.id, shortId, {
                                 format: "CODE128",
                                 width: 1.5,
-                                height: 40,
+                                height: 35,
                                 displayValue: true,
-                                fontSize: 12
+                                fontSize: 11
                             });
                         } catch(e) {}
                     });
@@ -903,8 +1027,77 @@ else:
         </html>
         """
 
-    final_html = html_template.replace("__ORDERS_JSON__", orders_json_string)
-    components.html(final_html, height=700)
+    final_html = (
+        html_template.replace("__ORDERS_JSON__", orders_json_string)
+        .replace("__LOCKED_JSON__", locked_json_string)
+    )
+    components.html(final_html, height=750)
+
+  with tab_lock:
+    st.markdown(
+        "<h3 style='text-align: center; color: #ffffff; text-shadow: 0 0 15px"
+        " #ffffff;'>🔒 Monthly Lock & Security Center</h3>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<p style='text-align: center; color: #ffffff;'>Locking a month"
+        " prevents any edits, note deletions, or status updates for all"
+        " orders belonging to that month.</p>",
+        unsafe_allow_html=True,
+    )
+
+    # Extract all available months from orders
+    all_months = set()
+    for o in st.session_state.orders:
+      my = get_month_year(o.get("date", ""))
+      if my:
+        all_months.add(my)
+
+    # Also add current month
+    current_my = f"{now.month:02d}/{now.year}"
+    all_months.add(current_my)
+
+    sorted_months = sorted(list(all_months))
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    for m in sorted_months:
+      is_locked = m in st.session_state.locked_months
+      c1, c2, c3 = st.columns([2, 2, 2])
+      with c1:
+        st.markdown(
+            f"<h4 style='margin:0; color:#ffffff;'>📅 Month: {m}</h4>",
+            unsafe_allow_html=True,
+        )
+      with c2:
+        if is_locked:
+          st.markdown(
+              "<span class='status-badge' style='background:rgba(255,193,7,0.5);"
+              " color:#fff3cd;'>🔒 Locked</span>",
+              unsafe_allow_html=True,
+          )
+        else:
+          st.markdown(
+              "<span class='status-badge' style='background:rgba(40,167,69,0.5);"
+              " color:#d4edda;'>🔓 Unlocked</span>",
+              unsafe_allow_html=True,
+          )
+      with c3:
+        if is_locked:
+          if st.button(f"Unlock {m}", key=f"unlock_{m}"):
+            st.session_state.locked_months = [
+                x for x in st.session_state.locked_months if x != m
+            ]
+            save_locked_months(st.session_state.locked_months)
+            st.success(f"Month {m} unlocked successfully!")
+            st.rerun()
+        else:
+          if st.button(f"Lock {m}", key=f"lock_{m}"):
+            if m not in st.session_state.locked_months:
+              st.session_state.locked_months.append(m)
+              save_locked_months(st.session_state.locked_months)
+              st.success(f"Month {m} locked successfully!")
+              st.rerun()
+      st.markdown("---")
 
   with tab_calc:
     st.markdown(
