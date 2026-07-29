@@ -135,6 +135,22 @@ st.markdown(
             transform: scale(0.95);
         }
 
+        /* Specific Styling for Form Submit Button ("Save Order") with Pink Text */
+        div[data-testid="stFormSubmitButton"] > button {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #ff1aff !important;
+            border: 2px solid #ffffff !important;
+            text-shadow: none !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 20px #ffffff !important;
+        }
+
+        div[data-testid="stFormSubmitButton"] > button:hover {
+            background: #ff1aff !important;
+            color: #ffffff !important;
+            border-color: #ffffff !important;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 35px #ff1aff !important;
+        }
+
         /* Status Badges with Pulse */
         .status-badge {
             display: inline-block;
