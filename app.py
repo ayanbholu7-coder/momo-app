@@ -4,7 +4,7 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 1. Page Setup & Clean White-Dominant Modern Styling
+# 1. Page Setup & Exact #F100FF Alive Styling
 st.set_page_config(
     page_title="Momo Fashion",
     page_icon="✨",
@@ -18,48 +18,45 @@ st.markdown(
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
         :root {
-            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            --glass-bg: rgba(255, 255, 255, 0.88);
-            --glass-border: rgba(255, 255, 255, 1);
+            --accent-pink: #F100FF;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(241, 0, 255, 0.25);
             --text-main: #1f1f1f;
-            --accent-pink: #d81b60;
         }
 
         .stApp {
-            background: linear-gradient(135deg, #f9f9fb 0%, #f3f4f7 50%, #faf5f8 100%);
+            background: linear-gradient(135deg, #fff5fb 0%, #fde8fd 50%, #fbe0fb 100%);
             background-attachment: fixed;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* Sleek Modern Header matching the clean look */
+        /* Alive Vibrant Header matching #F100FF */
         .momo-header {
             text-align: center;
             font-size: clamp(2.4rem, 8vw, 3.4rem);
             font-weight: 800;
-            background: linear-gradient(135deg, #d81b60 0%, #ad1457 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #F100FF;
             margin-bottom: 20px;
             letter-spacing: -1px;
-            filter: drop-shadow(0 2px 10px rgba(216, 27, 96, 0.15));
-            animation: fadeInApp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            text-shadow: 0 4px 20px rgba(241, 0, 255, 0.25);
+            animation: pulseHeader 3s ease-in-out infinite;
         }
 
-        @keyframes fadeInApp {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes pulseHeader {
+            0%, 100% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.02); filter: brightness(1.15); }
         }
 
-        /* Crisp Glassmorphism Cards */
+        /* Crisp Glassmorphism Cards with #F100FF Accents */
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 22px;
             margin-bottom: 16px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 10px 35px rgba(241, 0, 255, 0.06);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
@@ -67,8 +64,8 @@ st.markdown(
 
         .glass-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 45px rgba(216, 27, 96, 0.08);
-            border-color: rgba(216, 27, 96, 0.2);
+            box-shadow: 0 16px 45px rgba(241, 0, 255, 0.15);
+            border-color: #F100FF;
         }
 
         .glass-card::before {
@@ -78,10 +75,10 @@ st.markdown(
             left: 0;
             width: 5px;
             height: 100%;
-            background: linear-gradient(to bottom, #d81b60, #f06292);
+            background: #F100FF;
         }
 
-        /* High-End Interactive Buttons */
+        /* High-End Interactive Buttons with #F100FF Glow */
         div.stButton > button {
             background: #1a1a1a;
             color: #ffffff;
@@ -93,14 +90,14 @@ st.markdown(
             min-height: 52px;
             font-size: 1rem;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
         }
 
         div.stButton > button:hover {
-            background: #d81b60;
-            color: white;
+            background: #F100FF;
+            color: #ffffff;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(216, 27, 96, 0.25);
+            box-shadow: 0 10px 25px rgba(241, 0, 255, 0.4);
         }
 
         div.stButton > button:active {
@@ -118,7 +115,7 @@ st.markdown(
             text-transform: uppercase;
             box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        .status-pending { background: #fce4ec; color: #d81b60; border: 1px solid #f8bbd0; }
+        .status-pending { background: #fef0fe; color: #F100FF; border: 1px solid rgba(241, 0, 255, 0.3); }
         .status-progress { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-fitting { background: #cce5ff; color: #004085; border: 1px solid #b8daff; }
         .status-completed { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -127,26 +124,26 @@ st.markdown(
         input, textarea, select {
             font-size: 16px !important;
             border-radius: 14px !important;
-            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            border: 1px solid rgba(241, 0, 255, 0.2) !important;
             background: #ffffff !important;
             transition: all 0.2s ease !important;
         }
 
         input:focus, textarea:focus, select:focus {
-            border-color: #d81b60 !important;
-            box-shadow: 0 0 0 4px rgba(216, 27, 96, 0.12) !important;
+            border-color: #F100FF !important;
+            box-shadow: 0 0 0 4px rgba(241, 0, 255, 0.18) !important;
             background: #ffffff !important;
         }
 
         /* Seamless Modern Tabs */
         .stTabs [data-baseweb="tab-list"] {
             gap: 10px;
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(255, 255, 255, 0.8);
             padding: 8px;
             border-radius: 20px;
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 25px rgba(241, 0, 255, 0.06);
+            border: 1px solid rgba(241, 0, 255, 0.2);
         }
 
         .stTabs [data-baseweb="tab"] {
@@ -158,9 +155,9 @@ st.markdown(
         }
 
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #d81b60 0%, #ad1457 100%) !important;
-            color: white !important;
-            box-shadow: 0 6px 20px rgba(216, 27, 96, 0.3);
+            background: #F100FF !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 20px rgba(241, 0, 255, 0.4);
         }
     </style>
 """,
@@ -273,7 +270,7 @@ if st.session_state.selected_order_id is not None:
                 <span class="status-badge {status_class}">{status}</span>
             </div>
             <p style="font-size: 1.05rem; margin-bottom: 8px; color: #333;"><b>📞 Phone:</b> {current_order['phone'] if current_order['phone'] else 'None'}</p>
-            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #d81b60;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #F100FF;"><b>📅 Due Date:</b> {current_order['date']}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -499,7 +496,7 @@ else:
                     <h3 style="margin: 0; color: #1a1a1a; font-size: 1.15rem;">👤 {order['name']}</h3>
                     <span class="status-badge {status_class}">{status}</span>
                 </div>
-                <p style="font-size: 0.9rem; color: #d81b60; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
+                <p style="font-size: 0.9rem; color: #F100FF; font-weight: 600; margin-bottom: 0px;">📅 Due Date: {order['date']}</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -540,8 +537,8 @@ else:
                 -webkit-backdrop-filter: blur(20px);
                 padding: 20px;
                 border-radius: 28px;
-                box-shadow: 0 15px 45px rgba(0, 0, 0, 0.06);
-                border: 1px solid rgba(255, 255, 255, 1);
+                box-shadow: 0 15px 45px rgba(241, 0, 255, 0.08);
+                border: 1px solid rgba(241, 0, 255, 0.25);
             }
             .calc-screen {
                 background: #1a1a1a;
@@ -563,31 +560,31 @@ else:
                 gap: 10px;
             }
             .calc-btn {
-                background: #f4f5f7;
+                background: #fdf5fb;
                 color: #1a1a1a;
                 font-size: 1.25rem;
                 font-weight: 700;
                 border-radius: 16px;
                 min-height: 56px;
-                border: 1px solid rgba(0, 0, 0, 0.05);
+                border: 1px solid rgba(241, 0, 255, 0.15);
                 cursor: pointer;
                 transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+                box-shadow: 0 4px 15px rgba(241, 0, 255, 0.03);
                 user-select: none;
             }
             .calc-btn:hover {
-                background: #d81b60;
+                background: #F100FF;
                 color: #ffffff;
-                border-color: #d81b60;
+                border-color: #F100FF;
                 transform: translateY(-2px);
-                box-shadow: 0 8px 22px rgba(216, 27, 96, 0.3);
+                box-shadow: 0 8px 22px rgba(241, 0, 255, 0.35);
             }
             .calc-btn:active {
                 transform: scale(0.93) translateY(0);
-                background: #ad1457;
+                background: #d000db;
                 color: #ffffff;
             }
             .span-2 {
