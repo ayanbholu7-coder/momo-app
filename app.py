@@ -606,8 +606,7 @@ else:
     orders_json_string = json.dumps(st.session_state.orders)
     auto_wa_flag = "true" if st.session_state.auto_whatsapp else "false"
 
-    components.html(
-        """
+    html_template = """
         <!DOCTYPE html>
         <html>
         <head>
@@ -867,9 +866,9 @@ else:
             <div id="ordersContainer"></div>
 
             <script>
-                const serverOrders = %s;
+                const serverOrders = __ORDERS_JSON__;
                 const storageKey = "momo_permanent_client_orders_v1";
-                const autoWaEnabled = %s;
+                const autoWaEnabled = __AUTO_WA_FLAG__;
                 
                 function getOrders() {
                     const localData = localStorage.getItem(storageKey);
@@ -1042,9 +1041,12 @@ else:
         </body>
         </html>
         """
-        % (orders_json_string, auto_wa_flag),
-        height=700,
+
+    final_html = (
+        html_template.replace("__ORDERS_JSON__", orders_json_string)
+        .replace("__AUTO_WA_FLAG__", auto_wa_flag)
     )
+    components.html(final_html, height=700)
 
   with tab_calc:
     st.markdown(
