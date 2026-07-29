@@ -949,7 +949,7 @@ else:
                                 }} else if (newStatus === "In Progress") {{
                                     msg = `Hi ${{orders[idx].name}}, your order is now *In Progress* at our workshop. We'll keep you updated! ✨`;
                                 }}
-                                window.open(`https://wa.me/${{phoneNum}}?text=${{encodeURIComponent(msg)}}`, '_blank');
+                                window.open(`https://wa.me/${{phoneNum}}?text=` + encodeURIComponent(msg), '_blank');
                             }}
 
                             renderOrders();
@@ -1145,7 +1145,7 @@ else:
                     <button class="calc-btn" onclick="press('C')">C</button>
                     <button class="calc-btn" onclick="press('⌫')">⌫</button>
                     <button class="calc-btn" onclick="press('/')">/</button>
-                    <button class="calc_btn" onclick="press('*')">*</button>
+                    <button class="calc-btn" onclick="press('*')">*</button>
                     
                     <button class="calc-btn" onclick="press('7')">7</button>
                     <button class="calc-btn" onclick="press('8')">8</button>
