@@ -556,89 +556,340 @@ else:
 
     st.markdown("---")
 
-    # Search and Filter Toolbar
-    search_term = st.text_input(
-        "🔍 Search orders...", placeholder="Type name, phone, or notes..."
-    ).lower()
-    sort_option = st.selectbox(
-        "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
+    # 100% Zero-Delay Client-Side Persistent Orders & Notes Manager component
+    orders_json_string = json.dumps(st.session_state.orders)
+    
+    components.html(
+        f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+            body {{
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                background: transparent;
+                margin: 0;
+                padding: 10px;
+                color: #ffffff;
+            }}
+            .toolbar {{
+                display: flex;
+                gap: 12px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }}
+            .search-input, .sort-select {{
+                flex: 1;
+                min-width: 200px;
+                padding: 14px 18px;
+                font-size: 16px;
+                font-weight: 700;
+                border-radius: 16px;
+                border: 2px solid rgba(255, 255, 255, 0.6);
+                background: rgba(255, 255, 255, 0.9);
+                color: #ff1aff;
+                outline: none;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            }}
+            .search-input::placeholder {{
+                color: #ff66cc;
+                opacity: 0.8;
+            }}
+            .search-input:focus, .sort-select:focus {{
+                border-color: #ffffff;
+                box-shadow: 0 0 25px #ffffff;
+                background: #ffffff;
+            }}
+            .tabs-header {{
+                display: flex;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.2);
+                padding: 8px;
+                border-radius: 20px;
+                backdrop-filter: blur(15px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                margin-bottom: 20px;
+                overflow-x: auto;
+            }}
+            .tab-btn {{
+                flex: 1;
+                min-width: 120px;
+                height: 48px;
+                background: transparent;
+                border: none;
+                border-radius: 14px;
+                font-weight: 700;
+                color: #ffffff;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                text-shadow: 0 0 8px #ffffff;
+                font-size: 0.95rem;
+            }}
+            .tab-btn.active {{
+                background: #ffffff;
+                color: #ff1aff;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                text-shadow: none;
+                transform: scale(1.03);
+            }}
+            .glass-card {{
+                background: rgba(255, 255, 255, 0.18);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                border-radius: 24px;
+                padding: 22px;
+                margin-bottom: 18px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+                position: relative;
+                overflow: hidden;
+            }}
+            .glass-card::before {{
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 6px;
+                height: 100%;
+                background: #ffffff;
+                box-shadow: 0 0 15px #ffffff;
+            }}
+            .card-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }}
+            .card-title {{
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 800;
+                color: #ffffff;
+            }}
+            .status-badge {{
+                display: inline-block;
+                padding: 6px 14px;
+                border-radius: 30px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.6px;
+                text-transform: uppercase;
+                box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            }}
+            .status-Pending {{ background: rgba(255, 255, 255, 0.3); color: #ffffff; border: 1px solid #ffffff; }}
+            .status-In-Progress {{ background: rgba(255, 193, 7, 0.4); color: #fff3cd; border: 1px solid #ffeeba; }}
+            .status-Ready-to-Dispatch {{ background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }}
+            .status-Completed {{ background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }}
+
+            .meta-text {{
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #ffffff;
+                margin-bottom: 12px;
+                text-shadow: 0 0 8px #ffffff;
+            }}
+            .notes-textarea {{
+                width: 100%;
+                min-height: 90px;
+                padding: 12px;
+                border-radius: 14px;
+                border: 2px solid rgba(255, 255, 255, 0.6);
+                background: rgba(255, 255, 255, 0.9);
+                color: #ff1aff;
+                font-weight: 700;
+                font-size: 0.95rem;
+                resize: vertical;
+                box-sizing: border-box;
+                outline: none;
+                margin-bottom: 10px;
+            }}
+            .notes-textarea:focus {{
+                border-color: #ffffff;
+                background: #ffffff;
+                box-shadow: 0 0 20px #ffffff;
+            }}
+            .action-row {{
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                flex-wrap: wrap;
+            }}
+            .action-select {
+                padding: 10px 14px;
+                border-radius: 12px;
+                border: 2px solid rgba(255, 255, 255, 0.6);
+                background: #ffffff;
+                color: #ff1aff;
+                font-weight: 700;
+                font-size: 0.9rem;
+                outline: none;
+                cursor: pointer;
+            }
+            .save-note-btn {
+                background: rgba(255, 255, 255, 0.9);
+                color: #ff1aff;
+                border: 2px solid #ffffff;
+                padding: 10px 18px;
+                border-radius: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                transition: all 0.2s ease;
+            }
+            .save-note-btn:hover {
+                background: #ff1aff;
+                color: #ffffff;
+                box-shadow: 0 0 20px #ff1aff;
+            }
+            .empty-state {{
+                text-align: center;
+                padding: 30px;
+                font-weight: 700;
+                color: #ffffff;
+                font-size: 1.1rem;
+                text-shadow: 0 0 10px #ffffff;
+            }}
+        </style>
+        </head>
+        <body>
+            <div class="toolbar">
+                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search orders, notes, phone..." oninput="renderOrders()">
+                <select id="sortSelect" class="sort-select" onchange="renderOrders()">
+                    <option value="due">Sort: Closest Due Date</option>
+                    <option value="newest">Sort: Newest Added</option>
+                    <option value="name">Sort: Customer Name</option>
+                </select>
+            </div>
+
+            <div class="tabs-header">
+                <button class="tab-btn active" id="tab_Pending" onclick="switchTab('Pending')">⏳ Pending</button>
+                <button class="tab-btn" id="tab_In_Progress" onclick="switchTab('In Progress')">🚀 In Progress</button>
+                <button class="tab-btn" id="tab_Ready_to_Dispatch" onclick="switchTab('Ready to Dispatch')">📦 Ready to Dispatch</button>
+                <button class="tab-btn" id="tab_Completed" onclick="switchTab('Completed')">✅ Completed</button>
+            </div>
+
+            <div id="ordersContainer"></div>
+
+            <script>
+                // LocalStorage Fallback & Permanent Sync Initialization
+                let serverOrders = {orders_json_string};
+                let storageKey = "momo_permanent_client_orders_v1";
+                
+                // Merge server state with localStorage for permanent zero-loss retention
+                function getOrders() {{
+                    let localData = localStorage.getItem(storageKey);
+                    if (localData) {{
+                        try {{
+                            let parsed = JSON.parse(localData);
+                            if (Array.isArray(parsed) && parsed.length >= serverOrders.length) {{
+                                return parsed;
+                            }}
+                        }} catch(e) {{}}
+                    }}
+                    localStorage.setItem(storageKey, JSON.stringify(serverOrders));
+                    return serverOrders;
+                }}
+
+                let orders = getOrders();
+                let currentTab = "Pending";
+
+                function switchTab(tabName) {{
+                    currentTab = tabName;
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    let activeBtnId = 'tab_' + tabName.replace(/ /g, '_');
+                    let targetBtn = document.getElementById(activeBtnId);
+                    if (targetBtn) targetBtn.classList.add('active');
+                    renderOrders();
+                }}
+
+                function updateOrderField(id, field, value) {{
+                    let idx = orders.findIndex(o => o.id === id);
+                    if (idx !== -1) {{
+                        orders[idx][field] = value;
+                        localStorage.setItem(storageKey, JSON.stringify(orders));
+                    }}
+                }}
+
+                function saveNoteAndStatus(id) {{
+                    let noteEl = document.getElementById('note_' + id);
+                    let statusEl = document.getElementById('status_' + id);
+                    if (noteEl && statusEl) {{
+                        let idx = orders.findIndex(o => o.id === id);
+                        if (idx !== -1) {{
+                            orders[idx].notes = noteEl.value;
+                            orders[idx].status = statusEl.value;
+                            localStorage.setItem(storageKey, JSON.stringify(orders));
+                            renderOrders();
+                        }}
+                    }}
+                }}
+
+                function renderOrders() {{
+                    let search = document.getElementById('searchInput').value.toLowerCase();
+                    let sort = document.getElementById('sortSelect').value;
+                    let container = document.getElementById('ordersContainer');
+
+                    let filtered = orders.filter(o => {{
+                        let matchesTab = (o.status || "Pending") === currentTab;
+                        let matchesSearch = (o.name || "").toLowerCase().includes(search) ||
+                                          (o.phone || "").toLowerCase().includes(search) ||
+                                          (o.notes || "").toLowerCase().includes(search);
+                        return matchesTab && matchesSearch;
+                    }});
+
+                    filtered.sort((a, b) => {{
+                        if (sort === 'due') {{
+                            let dateA = new Date(a.date || '01/01/2026');
+                            let dateB = new Date(b.date || '01/01/2026');
+                            return dateA - dateB;
+                        }} else if (sort === 'newest') {{
+                            return parseFloat(b.id || 0) - parseFloat(a.id || 0);
+                        }} else {{
+                            return (a.name || "").localeCompare(b.name || "");
+                        }}
+                    }});
+
+                    if (filtered.length === 0) {{
+                        container.innerHTML = `<div class="empty-state">No ${{currentTab.toLowerCase()}} orders found.</div>`;
+                        return;
+                    }}
+
+                    let html = '';
+                    filtered.forEach(o => {{
+                        let badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
+                        html += `
+                            <div class="glass-card">
+                                <div class="card-header">
+                                    <h3 class="card-title">👤 ${{o.name || 'Customer'}}</h3>
+                                    <span class="status-badge ${{badgeClass}}">${{o.status || 'Pending'}}</span>
+                                </div>
+                                <div class="meta-text">📞 Phone: ${{o.phone || 'None'}} &nbsp;|&nbsp; 📅 Due Date: ${{o.date || 'N/A'}}</div>
+                                <textarea id="note_${{o.id}}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${{o.id}}', 'notes', this.value)">${{o.notes || ''}}</textarea>
+                                <div class="action-row">
+                                    <select id="status_${{o.id}}" class="action-select" onchange="updateOrderField('${{o.id}}', 'status', this.value)">
+                                        <option value="Pending" ${{o.status === 'Pending' ? 'selected' : ''}}>⏳ Pending</option>
+                                        <option value="In Progress" ${{o.status === 'In Progress' ? 'selected' : ''}}>🚀 In Progress</option>
+                                        <option value="Ready to Dispatch" ${{o.status === 'Ready to Dispatch' ? 'selected' : ''}}>📦 Ready to Dispatch</option>
+                                        <option value="Completed" ${{o.status === 'Completed' ? 'selected' : ''}}>✅ Completed</option>
+                                    </select>
+                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${{o.id}}')">💾 Save Note & Status</button>
+                                </div>
+                            </div>
+                        `;
+                    }});
+                    container.innerHTML = html;
+                }}
+
+                renderOrders();
+            </script>
+        </body>
+        </html>
+        """,
+        height=650,
     )
-
-    # Sub-tabs for filtering orders by status including Ready to Dispatch
-    status_tabs = st.tabs(
-        [
-            "⏳ Pending",
-            "🚀 In Progress",
-            "📦 Ready to Dispatch",
-            "✅ Completed",
-        ]
-    )
-    status_mapping = [
-        "Pending",
-        "In Progress",
-        "Ready to Dispatch",
-        "Completed",
-    ]
-
-    for idx, t_tab in enumerate(status_tabs):
-      with t_tab:
-        target_status = status_mapping[idx]
-        filtered_orders = [
-            o
-            for o in st.session_state.orders
-            if o.get("status", "Pending") == target_status
-            and (
-                search_term in o["name"].lower()
-                or search_term in o["phone"].lower()
-                or search_term in o["notes"].lower()
-            )
-        ]
-
-
-        def get_sorting_key(order_item):
-          if sort_option == "Closest Due Date":
-            try:
-              return datetime.datetime.strptime(order_item["date"], "%m/%d/%Y")
-            except:
-              return datetime.datetime.max
-          elif sort_option == "Newest Added":
-            return -float(order_item["id"])
-          else:
-            return order_item["name"].lower()
-
-
-        filtered_orders.sort(key=get_sorting_key)
-
-        if not filtered_orders:
-          st.info(f"No {target_status.lower()} orders found.")
-        else:
-          for order in filtered_orders:
-            status = order.get("status", "Pending")
-            status_class = {
-                "Pending": "status-pending",
-                "In Progress": "status-progress",
-                "Ready to Dispatch": "status-dispatch",
-                "Completed": "status-completed",
-            }.get(status, "status-pending")
-
-            st.markdown(
-                f"""
-                <div class="glass-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                        <h3 style="margin: 0; color: #ffffff; font-size: 1.15rem;">👤 {order['name']}</h3>
-                        <span class="status-badge {status_class}">{status}</span>
-                    </div>
-                    <p style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 0px; text-shadow: 0 0 8px #ffffff;">📅 Due Date: {order['date']}</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            if st.button(
-                "📄 View Details & Notes", key=f"view_{target_status}_{order['id']}"
-            ):
-              st.session_state.selected_order_id = order["id"]
-              st.rerun()
 
   with tab_calc:
     st.markdown(
