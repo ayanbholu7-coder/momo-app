@@ -212,7 +212,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 2. Optimized Permanent Server-Side JSON Storage
+# 2. Permanent Server-Side JSON Storage
 DB_FILE = "momo_persistent_orders.json"
 LOCK_FILE = "momo_locked_months.json"
 UPLOAD_DIR = "momo_uploads"
@@ -220,22 +220,28 @@ if not os.path.exists(UPLOAD_DIR):
   os.makedirs(UPLOAD_DIR)
 
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=10)
 def load_orders_cached():
   if os.path.exists(DB_FILE):
     try:
       with open(DB_FILE, "r") as f:
-        return json.load(f)
+        data = json.load(f)
+        # Strict Deduplication by ID
+        unique = {}
+        for o in data:
+          if "id" in o:
+            unique[o["id"]] = o
+        return list(unique.values())
     except:
       return []
   return []
 
 
 def save_orders(orders_list):
-  # Deduplicate by ID before saving to prevent any duplicates
   unique_orders = {}
   for o in orders_list:
-    unique_orders[o["id"]] = o
+    if "id" in o:
+      unique_orders[o["id"]] = o
   cleaned_list = list(unique_orders.values())
 
   with open(DB_FILE, "w") as f:
@@ -243,7 +249,7 @@ def save_orders(orders_list):
   st.cache_data.clear()
 
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=10)
 def load_locked_months_cached():
   if os.path.exists(LOCK_FILE):
     try:
@@ -256,7 +262,7 @@ def load_locked_months_cached():
 
 def save_locked_months(locked_list):
   with open(LOCK_FILE, "w") as f:
-    json.dump(locked_list, f)
+    json.dump(list(set(locked_list)), f)
   st.cache_data.clear()
 
 
@@ -289,7 +295,7 @@ def trigger_confetti():
 
 now = datetime.datetime.now()
 
-# Helper to get MM/YYYY from date string MM/DD/YYYY
+
 def get_month_year(date_str):
   try:
     parts = date_str.split("/")
@@ -300,7 +306,7 @@ def get_month_year(date_str):
   return ""
 
 
-# 4. Routing: Detail Page vs Main Dashboard
+# 3. Routing: Detail Page vs Main Dashboard
 if st.session_state.selected_order_id is not None:
   current_order = next(
       (
@@ -351,7 +357,7 @@ if st.session_state.selected_order_id is not None:
                 <span class="status-badge {status_class}">{status}</span>
             </div>
             <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>📞 Phone:</b> {phone_val if phone_val else 'None'}</p>
-            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ffffff; text-shadow: 0 0 10px #ffffff;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ffffff;"><b>📅 Due Date:</b> {current_order['date']}</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -564,474 +570,102 @@ else:
               st.session_state.orders.insert(0, new_order)
               save_orders(st.session_state.orders)
               trigger_confetti()
-              st.success("Order & Barcode ID generated successfully!")
+              st.success("Order saved successfully!")
               st.rerun()
 
     st.markdown("---")
 
-    orders_json_string = json.dumps(st.session_state.orders)
-    locked_json_string = json.dumps(st.session_state.locked_months)
-
-    html_template = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
-            body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                background: transparent;
-                margin: 0;
-                padding: 10px;
-                color: #ffffff;
-            }
-            .toolbar {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
-            }
-            .search-input, .sort-select {
-                flex: 1;
-                min-width: 200px;
-                padding: 14px 18px;
-                font-size: 16px;
-                font-weight: 700;
-                border-radius: 16px;
-                border: 2px solid rgba(255, 255, 255, 0.6);
-                background: rgba(255, 255, 255, 0.9);
-                color: #ff1aff;
-                outline: none;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            }
-            .search-input::placeholder {
-                color: #ff66cc;
-                opacity: 0.8;
-            }
-            .search-input:focus, .sort-select:focus {
-                border-color: #ffffff;
-                box-shadow: 0 0 25px #ffffff;
-                background: #ffffff;
-            }
-            .tabs-header {
-                display: flex;
-                gap: 8px;
-                background: rgba(255, 255, 255, 0.2);
-                padding: 8px;
-                border-radius: 20px;
-                backdrop-filter: blur(15px);
-                border: 1px solid rgba(255, 255, 255, 0.5);
-                margin-bottom: 20px;
-                overflow-x: auto;
-            }
-            .tab-btn {
-                flex: 1;
-                min-width: 120px;
-                height: 48px;
-                background: transparent;
-                border: none;
-                border-radius: 14px;
-                font-weight: 700;
-                color: #ffffff;
-                cursor: pointer;
-                transition: all 0.25s ease;
-                text-shadow: 0 0 8px #ffffff;
-                font-size: 0.95rem;
-            }
-            .tab-btn.active {
-                background: #ffffff;
-                color: #ff1aff;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-                text-shadow: none;
-                transform: scale(1.03);
-            }
-            .glass-card {
-                background: rgba(255, 255, 255, 0.18);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.5);
-                border-radius: 24px;
-                padding: 22px;
-                margin-bottom: 18px;
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-                position: relative;
-                overflow: hidden;
-            }
-            .glass-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 6px;
-                height: 100%;
-                background: #ffffff;
-                box-shadow: 0 0 15px #ffffff;
-            }
-            .card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 10px;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .card-title {
-                margin: 0;
-                font-size: 1.2rem;
-                font-weight: 800;
-                color: #ffffff;
-            }
-            .status-badge {
-                display: inline-block;
-                padding: 6px 14px;
-                border-radius: 30px;
-                font-size: 0.75rem;
-                font-weight: 700;
-                letter-spacing: 0.6px;
-                text-transform: uppercase;
-                box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            }
-            .status-Pending { background: rgba(255, 255, 255, 0.3); color: #ffffff; border: 1px solid #ffffff; }
-            .status-In-Progress { background: rgba(255, 193, 7, 0.4); color: #fff3cd; border: 1px solid #ffeeba; }
-            .status-Ready-to-Dispatch { background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }
-            .status-Completed { background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }
-
-            .meta-text {
-                font-size: 0.9rem;
-                font-weight: 600;
-                color: #ffffff;
-                margin-bottom: 12px;
-                text-shadow: 0 0 8px #ffffff;
-            }
-            .notes-textarea {
-                width: 100%;
-                min-height: 40px;
-                max-height: 90px;
-                padding: 6px 10px;
-                border-radius: 10px;
-                border: 2px solid rgba(255, 255, 255, 0.6);
-                background: rgba(255, 255, 255, 0.9);
-                color: #ff1aff;
-                font-weight: 700;
-                font-size: 0.85rem;
-                line-height: 1.2;
-                resize: vertical;
-                box-sizing: border-box;
-                outline: none;
-                margin-bottom: 8px;
-            }
-            .notes-textarea::placeholder {
-                color: #ff66cc;
-                opacity: 0.8;
-            }
-            .notes-textarea:focus {
-                border-color: #ffffff;
-                background: #ffffff;
-                box-shadow: 0 0 20px #ffffff;
-            }
-            .action-row {
-                display: flex;
-                gap: 10px;
-                align-items: center;
-                flex-wrap: wrap;
-                margin-top: 8px;
-            }
-            .action-select {
-                padding: 8px 12px;
-                border-radius: 10px;
-                border: 2px solid rgba(255, 255, 255, 0.6);
-                background: #ffffff;
-                color: #ff1aff;
-                font-weight: 700;
-                font-size: 0.85rem;
-                outline: none;
-                cursor: pointer;
-            }
-            .save-note-btn {
-                background: rgba(255, 255, 255, 0.9);
-                color: #ff1aff;
-                border: 2px solid #ffffff;
-                padding: 8px 14px;
-                border-radius: 10px;
-                font-weight: 700;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                transition: all 0.2s ease;
-                font-size: 0.85rem;
-            }
-            .save-note-btn:hover {
-                background: #ff1aff;
-                color: #ffffff;
-                box-shadow: 0 0 20px #ff1aff;
-            }
-            .delete-note-btn {
-                background: rgba(255, 77, 77, 0.3);
-                color: #ffffff;
-                border: 2px solid #ff4d4d;
-                padding: 8px 12px;
-                border-radius: 10px;
-                font-weight: 700;
-                cursor: pointer;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                transition: all 0.2s ease;
-                font-size: 0.85rem;
-            }
-            .delete-note-btn:hover {
-                background: #ff4d4d;
-                color: #ffffff;
-                box-shadow: 0 0 20px #ff4d4d;
-            }
-            .barcode-container {
-                background: #ffffff;
-                padding: 8px;
-                border-radius: 10px;
-                display: inline-block;
-                margin-top: 6px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            }
-            .empty-state {
-                text-align: center;
-                padding: 30px;
-                font-weight: 700;
-                color: #ffffff;
-                font-size: 1.1rem;
-                text-shadow: 0 0 10px #ffffff;
-            }
-            .locked-banner {
-                background: rgba(255, 193, 7, 0.3);
-                border: 1px solid #ffeeba;
-                color: #fff3cd;
-                padding: 6px 12px;
-                border-radius: 10px;
-                font-size: 0.85rem;
-                font-weight: 700;
-                margin-bottom: 8px;
-            }
-        </style>
-        </head>
-        <body>
-            <div class="toolbar">
-                <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search orders, notes, phone, ID..." oninput="renderOrders()">
-                <select id="sortSelect" class="sort-select" onchange="renderOrders()">
-                    <option value="due">Sort: Closest Due Date</option>
-                    <option value="newest">Sort: Newest Added</option>
-                    <option value="name">Sort: Customer Name</option>
-                </select>
-            </div>
-
-            <div class="tabs-header">
-                <button class="tab-btn active" id="tab_Pending" onclick="switchTab('Pending')">⏳ Pending</button>
-                <button class="tab-btn" id="tab_In_Progress" onclick="switchTab('In Progress')">🚀 In Progress</button>
-                <button class="tab-btn" id="tab_Ready_to_Dispatch" onclick="switchTab('Ready to Dispatch')">📦 Ready to Dispatch</button>
-                <button class="tab-btn" id="tab_Completed" onclick="switchTab('Completed')">✅ Completed</button>
-            </div>
-
-            <div id="ordersContainer"></div>
-
-            <script>
-                const serverOrders = __ORDERS_JSON__;
-                const serverLocked = __LOCKED_JSON__;
-                const storageKey = "momo_permanent_client_orders_v2";
-                const lockStorageKey = "momo_locked_months_v2";
-                
-                function getLockedMonths() {
-                    let set = new Set(serverLocked);
-                    const localData = localStorage.getItem(lockStorageKey);
-                    if (localData) {
-                        try {
-                            JSON.parse(localData).forEach(m => set.add(m));
-                        } catch(e) {}
-                    }
-                    return Array.from(set);
-                }
-
-                function getOrders() {
-                    let ordersMap = new Map();
-                    // Load server orders first as base
-                    serverOrders.forEach(o => ordersMap.set(o.id, o));
-                    
-                    const localData = localStorage.getItem(storageKey);
-                    if (localData) {
-                        try {
-                            const parsed = JSON.parse(localData);
-                            if (Array.isArray(parsed)) {
-                                parsed.forEach(o => {
-                                    if (!ordersMap.has(o.id) || (o.notes && o.notes.length >= (ordersMap.get(o.id).notes || '').length)) {
-                                        ordersMap.set(o.id, o);
-                                    }
-                                });
-                            }
-                        } catch(e) {}
-                    }
-                    const combined = Array.from(ordersMap.values());
-                    localStorage.setItem(storageKey, JSON.stringify(combined));
-                    return combined;
-                }
-
-                let orders = getOrders();
-                let lockedMonths = getLockedMonths();
-                let currentTab = "Pending";
-
-                function getMonthYear(dateStr) {
-                    try {
-                        const parts = dateStr.split('/');
-                        if (parts.length === 3) {
-                            return parts[0] + '/' + parts[2];
-                        }
-                    } catch(e) {}
-                    return '';
-                }
-
-                function switchTab(tabName) {
-                    currentTab = tabName;
-                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                    const activeBtnId = 'tab_' + tabName.replace(/ /g, '_');
-                    const targetBtn = document.getElementById(activeBtnId);
-                    if (targetBtn) targetBtn.classList.add('active');
-                    renderOrders();
-                }
-
-                function updateOrderField(id, field, value) {
-                    const idx = orders.findIndex(o => o.id === id);
-                    if (idx !== -1) {
-                        const my = getMonthYear(orders[idx].date || '');
-                        if (lockedMonths.includes(my)) return; // Locked
-                        orders[idx][field] = value;
-                        localStorage.setItem(storageKey, JSON.stringify(orders));
-                    }
-                }
-
-                function saveNoteAndStatus(id) {
-                    const noteEl = document.getElementById('note_' + id);
-                    const statusEl = document.getElementById('status_' + id);
-                    if (noteEl && statusEl) {
-                        const idx = orders.findIndex(o => o.id === id);
-                        if (idx !== -1) {
-                            const my = getMonthYear(orders[idx].date || '');
-                            if (lockedMonths.includes(my)) {
-                                alert("This month is locked. Cannot modify note.");
-                                return;
-                            }
-                            orders[idx].notes = noteEl.value;
-                            orders[idx].status = statusEl.value;
-                            localStorage.setItem(storageKey, JSON.stringify(orders));
-                            renderOrders();
-                        }
-                    }
-                }
-
-                function deleteOrderRecord(id) {
-                    const idx = orders.findIndex(o => o.id === id);
-                    if (idx !== -1) {
-                        const my = getMonthYear(orders[idx].date || '');
-                        if (lockedMonths.includes(my)) {
-                            alert("This month is locked. Cannot delete order.");
-                            return;
-                        }
-                    }
-                    orders = orders.filter(o => o.id !== id);
-                    localStorage.setItem(storageKey, JSON.stringify(orders));
-                    renderOrders();
-                }
-
-                function renderOrders() {
-                    const search = document.getElementById('searchInput').value.toLowerCase();
-                    const sort = document.getElementById('sortSelect').value;
-                    const container = document.getElementById('ordersContainer');
-
-                    const filtered = orders.filter(o => {
-                        const matchesTab = (o.status || "Pending") === currentTab;
-                        const shortId = String(o.id).slice(-6);
-                        const matchesSearch = (o.name || "").toLowerCase().includes(search) ||
-                                          (o.phone || "").toLowerCase().includes(search) ||
-                                          (o.notes || "").toLowerCase().includes(search) ||
-                                          shortId.includes(search);
-                        return matchesTab && matchesSearch;
-                    });
-
-                    filtered.sort((a, b) => {
-                        if (sort === 'due') {
-                            const dateA = new Date(a.date || '01/01/2026');
-                            const dateB = new Date(b.date || '01/01/2026');
-                            return dateA - dateB;
-                        } else if (sort === 'newest') {
-                            return parseFloat(b.id || 0) - parseFloat(a.id || 0);
-                        } else {
-                            return (a.name || "").localeCompare(b.name || "");
-                        }
-                    });
-
-                    if (filtered.length === 0) {
-                        container.innerHTML = `<div class="empty-state">No ${currentTab.toLowerCase()} orders found.</div>`;
-                        return;
-                    }
-
-                    let html = '';
-                    filtered.forEach(o => {
-                        const badgeClass = 'status-' + (o.status || "Pending").replace(/ /g, '-');
-                        const shortId = String(o.id).slice(-6);
-                        const customerNameSafe = o.name || 'Customer';
-                        const orderDateSafe = o.date || 'N/A';
-                        const my = getMonthYear(orderDateSafe);
-                        const isLocked = lockedMonths.includes(my);
-
-                        html += `
-                            <div class="glass-card">
-                                ${isLocked ? '<div class="locked-banner">🔒 Locked Month (' + my + ') - Read Only</div>' : ''}
-                                <div class="card-header">
-                                    <h3 class="card-title">👤 ${customerNameSafe} (ID: #${shortId})</h3>
-                                    <span class="status-badge ${badgeClass}">${o.status || 'Pending'}</span>
-                                </div>
-                                <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${orderDateSafe}</div>
-                                
-                                <div style="margin-bottom: 8px;">
-                                    <div class="barcode-container">
-                                        <svg id="barcode_${o.id}"></svg>
-                                    </div>
-                                </div>
-
-                                <textarea id="note_${o.id}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." ${isLocked ? 'disabled' : ''} oninput="updateOrderField('${o.id}', 'notes', this.value)">${o.notes || ''}</textarea>
-                                <div class="action-row">
-                                    <select id="status_${o.id}" class="action-select" ${isLocked ? 'disabled' : ''} onchange="updateOrderField('${o.id}', 'status', this.value)">
-                                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
-                                        <option value="In Progress" ${o.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
-                                        <option value="Ready to Dispatch" ${o.status === 'Ready to Dispatch' ? 'selected' : ''}>📦 Ready to Dispatch</option>
-                                        <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
-                                    </select>
-                                    <button class="save-note-btn" ${isLocked ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''} onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
-                                    <button class="delete-note-btn" ${isLocked ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''} onclick="deleteOrderRecord('${o.id}')">🗑️ Delete Note</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    container.innerHTML = html;
-
-                    filtered.forEach(o => {
-                        const shortId = String(o.id).slice(-6);
-                        try {
-                            JsBarcode("#barcode_" + o.id, shortId, {
-                                format: "CODE128",
-                                width: 1.5,
-                                height: 35,
-                                displayValue: true,
-                                fontSize: 11
-                            });
-                        } catch(e) {}
-                    });
-                }
-
-                renderOrders();
-            </script>
-        </body>
-        </html>
-        """
-
-    final_html = (
-        html_template.replace("__ORDERS_JSON__", orders_json_string)
-        .replace("__LOCKED_JSON__", locked_json_string)
+    # Native Python Filter & Search Dashboard (Bug-free, single source of truth)
+    search_query = st.text_input(
+        "🔍 Search orders (Name, Phone, Notes, ID)...", ""
+    ).lower()
+    sort_option = st.selectbox(
+        "Sort Orders By",
+        ["Closest Due Date", "Newest Added", "Customer Name"],
+        label_visibility="collapsed",
     )
-    components.html(final_html, height=750)
+
+    status_tab = st.radio(
+        "Filter Status",
+        ["Pending", "In Progress", "Ready to Dispatch", "Completed"],
+        horizontal=True,
+    )
+
+    filtered_orders = []
+    for o in st.session_state.orders:
+      status_match = (o.get("status", "Pending")) == status_tab
+      short_id = str(o.get("id", ""))[-6:]
+      search_match = (
+          search_query in o.get("name", "").lower()
+          or search_query in o.get("phone", "").lower()
+          or search_query in o.get("notes", "").lower()
+          or search_query in short_id
+      )
+      if status_match and search_match:
+        filtered_orders.append(o)
+
+    # Sorting logic
+    if sort_option == "Closest Due Date":
+      filtered_orders.sort(key=lambda x: x.get("date", "01/01/2026"))
+    elif sort_option == "Newest Added":
+      filtered_orders.sort(key=lambda x: float(x.get("id", 0)), reverse=True)
+    else:
+      filtered_orders.sort(key=lambda x: x.get("name", ""))
+
+    if not filtered_orders:
+      st.info(f"No {status_tab.lower()} orders found.")
+    else:
+      for o in filtered_orders:
+        short_id = str(o["id"])[-6:]
+        my = get_month_year(o.get("date", ""))
+        is_locked = my in st.session_state.locked_months
+        status_class = {
+            "Pending": "status-pending",
+            "In Progress": "status-progress",
+            "Ready to Dispatch": "status-dispatch",
+            "Completed": "status-completed",
+        }.get(o.get("status", "Pending"), "status-pending")
+
+        with st.container():
+          st.markdown(
+              f"""
+                    <div class="glass-card">
+                        {f'<div style="background: rgba(255,193,7,0.3); border: 1px solid #ffeeba; color: #fff3cd; padding: 6px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px;">🔒 Locked Month ({my}) - Read Only</div>' if is_locked else ''}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">👤 {o.get('name', 'Customer')} (ID: #{short_id})</h3>
+                            <span class="status-badge {status_class}">{o.get('status', 'Pending')}</span>
+                        </div>
+                        <p style="font-size: 0.9rem; font-weight: 600; color: #ffffff; margin-bottom: 10px;">📞 Phone: {o.get('phone', 'None')} &nbsp;|&nbsp; 📅 Due Date: {o.get('date', 'N/A')}</p>
+                    </div>
+                    """,
+              unsafe_allow_html=True,
+          )
+
+          col_act1, col_act2 = st.columns(2)
+          with col_act1:
+            if st.button(
+                f"👁️ Open Full Details (#{short_id})",
+                key=f"open_detail_{o['id']}",
+            ):
+              st.session_state.selected_order_id = o["id"]
+              st.rerun()
+          with col_act2:
+            if not is_locked:
+              if st.button(f"🗑️ Delete (#{short_id})", key=f"del_{o['id']}"):
+                img_path = o.get("image_path")
+                if img_path and os.path.exists(img_path):
+                  try:
+                    os.remove(img_path)
+                  except:
+                    pass
+                st.session_state.orders = [
+                    item
+                    for item in st.session_state.orders
+                    if item["id"] != o["id"]
+                ]
+                save_orders(st.session_state.orders)
+                st.success("Order deleted successfully!")
+                st.rerun()
 
   with tab_lock:
     st.markdown(
@@ -1046,14 +680,12 @@ else:
         unsafe_allow_html=True,
     )
 
-    # Extract all available months from orders
     all_months = set()
     for o in st.session_state.orders:
       my = get_month_year(o.get("date", ""))
       if my:
         all_months.add(my)
 
-    # Also add current month
     current_my = f"{now.month:02d}/{now.year}"
     all_months.add(current_my)
 
