@@ -227,7 +227,7 @@ if needs_unlock:
   st.stop()
 
 # 4. Routing: Detail Page vs Main List Page
-if st.session_state.selected_order_id is not Model_ID := None:
+if st.session_state.selected_order_id is not None:
   current_order = next(
       (
           o
