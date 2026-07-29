@@ -645,18 +645,23 @@ else:
             }
             .notes-textarea {
                 width: 100%;
-                min-height: 90px;
-                padding: 12px;
+                min-height: 100px;
+                padding: 16px;
                 border-radius: 14px;
                 border: 2px solid rgba(255, 255, 255, 0.6);
                 background: rgba(255, 255, 255, 0.9);
                 color: #ff1aff;
                 font-weight: 700;
                 font-size: 0.95rem;
+                line-height: 1.4;
                 resize: vertical;
                 box-sizing: border-box;
                 outline: none;
-                margin-bottom: 10px;
+                margin-bottom: 12px;
+            }
+            .notes-textarea::placeholder {
+                color: #ff66cc;
+                opacity: 0.8;
             }
             .notes-textarea:focus {
                 border-color: #ffffff;
@@ -811,6 +816,7 @@ else:
                     if (idx !== -1) {
                         orders[idx].notes = '';
                         localStorage.setItem(storageKey, JSON.stringify(orders));
+                        renderOrders();
                     }
                 }
 
