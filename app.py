@@ -3,7 +3,7 @@ import json
 import os
 import streamlit as st
 
-# 1. Page Setup & Branding (Pink, White, Black)
+# 1. Page Setup & Minimalist Styling
 st.set_page_config(
     page_title="Momo Fashion", page_icon="✨", layout="centered"
 )
@@ -70,11 +70,10 @@ def save_orders(orders_list):
     json.dump(orders_list, f, indent=4)
 
 
-# Initialize orders from file
 if "orders" not in st.session_state:
   st.session_state.orders = load_orders()
 
-# 3. Monthly Paywall / Lock System
+# 3. Simple Monthly Lock System
 SECRET_CODE = "momo2026"  # Change this password whenever you want
 now = datetime.datetime.now()
 current_month_year = f"{now.month}-{now.year}"
@@ -87,8 +86,8 @@ if now.day >= 1 and st.session_state.unlocked_month != current_month_year:
   st.markdown("---")
   st.markdown("<h2 style='text-align: center;'>🔒 App Locked</h2>", unsafe_allow_html=True)
   st.markdown(
-      "<p style='text-align: center; color: #666;'>A new billing cycle has"
-      " started. Enter the code to unlock.</p>",
+      "<p style='text-align: center; color: #666;'>New billing cycle started."
+      " Enter code.</p>",
       unsafe_allow_html=True,
   )
 
@@ -96,7 +95,7 @@ if now.day >= 1 and st.session_state.unlocked_month != current_month_year:
   if st.button("Unlock App"):
     if entered_code == SECRET_CODE:
       st.session_state.unlocked_month = current_month_year
-      st.success("Unlocked successfully!")
+      st.success("Unlocked!")
       st.rerun()
     else:
       st.error("Incorrect code!")
@@ -105,7 +104,6 @@ if now.day >= 1 and st.session_state.unlocked_month != current_month_year:
 # 4. Main App Interface
 st.title("✨ Momo Fashion")
 
-# Add New Order Expander
 with st.expander("➕ Add New Order", expanded=False):
   with st.form("order_form", clear_on_submit=True):
     customer_name = st.text_input("Customer Name")
@@ -127,12 +125,11 @@ with st.expander("➕ Add New Order", expanded=False):
         }
         st.session_state.orders.insert(0, new_order)
         save_orders(st.session_state.orders)
-        st.success("Order saved permanently!")
+        st.success("Saved permanently!")
         st.rerun()
 
 st.markdown("---")
 
-# Search Filter
 search_term = st.text_input(
     "🔍 Search orders...", placeholder="Type name, phone, or notes..."
 ).lower()
@@ -145,7 +142,6 @@ filtered_orders = [
     or search_term in o["notes"].lower()
 ]
 
-# Display Orders
 if not filtered_orders:
   st.info("No orders found.")
 else:
