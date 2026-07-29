@@ -77,7 +77,7 @@ if "orders" not in st.session_state:
 # 3. Monthly Paywall / Lock System
 SECRET_CODE = "momo2026"  # Change this password whenever you want
 now = datetime.datetime.now()
-current_month_year = f"{now.month}-{now.getFullYear()}"
+current_month_year = f"{now.month}-{now.year}"
 
 if "unlocked_month" not in st.session_state:
   st.session_state.unlocked_month = ""
