@@ -232,6 +232,23 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
+# Trigger Confetti JavaScript helper via Streamlit components
+def trigger_confetti():
+  components.html(
+      """
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+        <script>
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#ffffff', '#ff1aff', '#ff66cc', '#ff99ff']
+            });
+        </script>
+        """,
+      height=0,
+  )
+
 # 3. Monthly Lock System
 SECRET_CODE = "momo2026"
 now = datetime.datetime.now()
@@ -262,6 +279,7 @@ if needs_unlock:
   if st.button("Unlock App"):
     if entered_code == SECRET_CODE:
       st.session_state.unlocked_month = current_month_year
+      trigger_confetti()
       st.success("Unlocked successfully!")
       st.rerun()
     else:
@@ -444,7 +462,7 @@ else:
               label_visibility="collapsed",
           )
 
-        order_notes = st.text_area("Measurements, design details...")
+        order_notes = st.text_area("Measurements, design details, notes...")
         uploaded_file = st.file_uploader(
             "Upload Reference Photo / Swatch", type=["png", "jpg", "jpeg"]
         )
@@ -480,7 +498,8 @@ else:
             }
             st.session_state.orders.insert(0, new_order)
             save_orders(st.session_state.orders)
-            st.success("Saved permanently!")
+            trigger_confetti()
+            st.success("Note and order saved successfully!")
             st.rerun()
 
     st.markdown("---")
