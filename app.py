@@ -73,16 +73,14 @@ def save_orders(orders_list):
 if "orders" not in st.session_state:
   st.session_state.orders = load_orders()
 
-# 3. Monthly Lock System (Fixed: Only locks on the 1st if not already unlocked for this month)
+# 3. Monthly Lock System
 SECRET_CODE = "momo2026"  # Change this password whenever you want
 now = datetime.datetime.now()
 current_month_year = f"{now.month}-{now.year}"
 
-# Initialize unlock state persistence across app reruns using query params or session state
 if "unlocked_month" not in st.session_state:
   st.session_state.unlocked_month = ""
 
-# Only lock if it's the 1st of the month AND it hasn't been unlocked for this specific month yet
 is_first_of_month = now.day == 1
 needs_unlock = (
     is_first_of_month and st.session_state.unlocked_month != current_month_year
@@ -114,7 +112,49 @@ with st.expander("➕ Add New Order", expanded=False):
   with st.form("order_form", clear_on_submit=True):
     customer_name = st.text_input("Customer Name")
     phone_number = st.text_input("Phone Number")
-    order_date = st.date_input("Due Date", datetime.date.today())
+
+    # Roblox-style sleek inline dropdown selectors for Month, Day, Year
+    st.markdown(
+        "<p"
+        " style='margin-bottom:0px; font-weight:600; font-size:0.9rem;'>Due"
+        " Date</p>",
+        unsafe_allow_html=True,
+    )
+    col1, col2, col3 = st.columns(3)
+    with col1:
+      months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+      ]
+      month_val = st.selectbox(
+          "Month",
+          months,
+          index=now.month - 1,
+          label_visibility="collapsed",
+      )
+    with col2:
+      day_val = st.selectbox(
+          "Day", list(range(1, 32)), index=now.day - 1, label_visibility="collapsed"
+      )
+    with col3:
+      years = list(range(2024, 2035))
+      year_val = st.selectbox(
+          "Year",
+          years,
+          index=years.index(now.year),
+          label_visibility="collapsed",
+      )
+
     order_notes = st.text_area("Measurements, design details, price...")
 
     submitted = st.form_submit_button("Save Order")
@@ -122,11 +162,13 @@ with st.expander("➕ Add New Order", expanded=False):
       if customer_name.strip() == "":
         st.warning("Please enter a customer name.")
       else:
+        month_index = months.index(month_val) + 1
+        formatted_date = f"{month_index:02d}/{day_val:02d}/{year_val}"
         new_order = {
             "id": str(datetime.datetime.now().timestamp()),
             "name": customer_name,
             "phone": phone_number,
-            "date": str(order_date),
+            "date": formatted_date,
             "notes": order_notes,
         }
         st.session_state.orders.insert(0, new_order)
