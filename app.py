@@ -165,7 +165,7 @@ st.markdown(
         }
         .status-pending { background: rgba(255, 255, 255, 0.3); color: #ffffff; border: 1px solid #ffffff; }
         .status-progress { background: rgba(255, 193, 7, 0.4); color: #fff3cd; border: 1px solid #ffeeba; }
-        .status-fitting { background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }
+        .status-dispatch { background: rgba(0, 123, 255, 0.4); color: #cce5ff; border: 1px solid #b8daff; }
         .status-completed { background: rgba(40, 167, 69, 0.4); color: #d4edda; border: 1px solid #c3e6cb; }
 
         /* Animated Input Fields with Pink Text */
@@ -340,7 +340,7 @@ if st.session_state.selected_order_id is not None:
     status_class = {
         "Pending": "status-pending",
         "In Progress": "status-progress",
-        "Fitting Ready": "status-fitting",
+        "Ready to Dispatch": "status-dispatch",
         "Completed": "status-completed",
     }.get(status, "status-pending")
 
@@ -364,12 +364,19 @@ if st.session_state.selected_order_id is not None:
         "<h3 style='color: #ffffff;'>⚡ Update Status</h3>",
         unsafe_allow_html=True,
     )
+    status_options = [
+        "Pending",
+        "In Progress",
+        "Ready to Dispatch",
+        "Completed",
+    ]
+    current_status_index = (
+        status_options.index(status) if status in status_options else 0
+    )
     new_status_val = st.selectbox(
         "Change Order Status",
-        ["Pending", "In Progress", "Fitting Ready", "Completed"],
-        index=["Pending", "In Progress", "Fitting Ready", "Completed"].index(
-            status
-        ),
+        status_options,
+        index=current_status_index,
         key=f"status_select_{current_order['id']}",
     )
     if new_status_val != status:
@@ -460,7 +467,7 @@ else:
 
         order_status = st.selectbox(
             "Order Status",
-            ["Pending", "In Progress", "Fitting Ready", "Completed"],
+            ["Pending", "In Progress", "Ready to Dispatch", "Completed"],
         )
 
         st.markdown(
@@ -557,14 +564,19 @@ else:
         "Sort By", ["Closest Due Date", "Newest Added", "Customer Name"]
     )
 
-    # Sub-tabs for filtering orders by status
+    # Sub-tabs for filtering orders by status including Ready to Dispatch
     status_tabs = st.tabs(
-        ["⏳ Pending", "🚀 In Progress", "👗 Fitting Ready", "✅ Completed"]
+        [
+            "⏳ Pending",
+            "🚀 In Progress",
+            "📦 Ready to Dispatch",
+            "✅ Completed",
+        ]
     )
     status_mapping = [
         "Pending",
         "In Progress",
-        "Fitting Ready",
+        "Ready to Dispatch",
         "Completed",
     ]
 
@@ -605,7 +617,7 @@ else:
             status_class = {
                 "Pending": "status-pending",
                 "In Progress": "status-progress",
-                "Fitting Ready": "status-fitting",
+                "Ready to Dispatch": "status-dispatch",
                 "Completed": "status-completed",
             }.get(status, "status-pending")
 
