@@ -967,27 +967,27 @@ else:
                         html += `
                             <div class="glass-card">
                                 <div class="card-header">
-                                    <h3 class="card-title">👤 ${customerNameSafe} (ID: #${shortId})</h3>
-                                    <span class="status-badge ${badgeClass}">${o.status || 'Pending'}</span>
+                                    <h3 class="card-title">👤 ${{customerNameSafe}} (ID: #${{shortId}})</h3>
+                                    <span class="status-badge ${{badgeClass}}">${{o.status || 'Pending'}}</span>
                                 </div>
-                                <div class="meta-text">📞 Phone: ${o.phone || 'None'} &nbsp;|&nbsp; 📅 Due Date: ${orderDateSafe}</div>
+                                <div class="meta-text">📞 Phone: ${{o.phone || 'None'}} &nbsp;|&nbsp; 📅 Due Date: ${{orderDateSafe}}</div>
                                 
                                 <div style="margin-bottom: 12px;">
                                     <div class="barcode-container">
-                                        <svg id="barcode_${o.id}"></svg>
+                                        <svg id="barcode_${{o.id}}"></svg>
                                     </div>
                                 </div>
 
-                                <textarea id="note_${o.id}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${o.id}', 'notes', this.value)">${o.notes || ''}</textarea>
+                                <textarea id="note_${{o.id}}" class="notes-textarea" placeholder="Add measurements, notes, or design instructions..." oninput="updateOrderField('${{o.id}}', 'notes', this.value)">${{o.notes || ''}}</textarea>
                                 <div class="action-row">
-                                    <select id="status_${o.id}" class="action-select" onchange="updateOrderField('${o.id}', 'status', this.value)">
-                                        <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
-                                        <option value="In Progress" ${o.status === 'In Progress' ? 'selected' : ''}>🚀 In Progress</option>
-                                        <option value="Ready to Dispatch" ${o.status === 'Ready to Dispatch' ? 'selected' : ''}>📦 Ready to Dispatch</option>
-                                        <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>✅ Completed</option>
+                                    <select id="status_${{o.id}}" class="action-select" onchange="updateOrderField('${{o.id}}', 'status', this.value)">
+                                        <option value="Pending" ${{o.status === 'Pending' ? 'selected' : ''}}>⏳ Pending</option>
+                                        <option value="In Progress" ${{o.status === 'In Progress' ? 'selected' : ''}}>🚀 In Progress</option>
+                                        <option value="Ready to Dispatch" ${{o.status === 'Ready to Dispatch' ? 'selected' : ''}}>📦 Ready to Dispatch</option>
+                                        <option value="Completed" ${{o.status === 'Completed' ? 'selected' : ''}}>✅ Completed</option>
                                     </select>
-                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${o.id}')">💾 Save Note & Status</button>
-                                    ${phoneNum ? `<a href="${waLink}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}
+                                    <button class="save-note-btn" onclick="saveNoteAndStatus('${{o.id}}')">💾 Save Note & Status</button>
+                                    ${{phoneNum ? `<a href="${{waLink}}" target="_blank" class="whatsapp-btn">🟢 WhatsApp Chat</a>` : ''}}
                                 </div>
                             </div>
                         `;
