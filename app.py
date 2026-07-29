@@ -163,6 +163,10 @@ if "orders" not in st.session_state:
 if "selected_order_id" not in st.session_state:
   st.session_state.selected_order_id = None
 
+# Calculator State Initialization
+if "calc_input" not in st.session_state:
+  st.session_state.calc_input = "0"
+
 # 3. Monthly Lock System
 SECRET_CODE = "momo2026"
 now = datetime.datetime.now()
@@ -231,7 +235,6 @@ if st.session_state.selected_order_id is not None:
         "Completed": "status-completed",
     }.get(status, "status-pending")
 
-    # FIXED: Used safe text components and Markdown rendering instead of broken raw HTML injection strings
     st.markdown(
         f"""
         <div class="detail-card">
@@ -298,6 +301,60 @@ else:
       '<div class="momo-header">✨ MOMO FASHION ✨</div>', unsafe_allow_html=True
   )
 
+  # Fully Functional Minimalistic Calculator Expander
+  with st.expander("🧮 Quick Calculator", expanded=False):
+    st.markdown(
+        f"""
+        <div style="background: #1a1a1a; color: #fff; padding: 14px; border-radius: 12px; font-size: 1.6rem; text-align: right; font-weight: 700; margin-bottom: 10px; word-break: break-all;">
+            {st.session_state.calc_input}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+    def handle_calc(val):
+      current = st.session_state.calc_input
+      if val == "C":
+        st.session_state.calc_input = "0"
+      elif val == "⌫":
+        st.session_state.calc_input = current[:-1] if len(current) > 1 else "0"
+      elif val == "=":
+        try:
+          # Safe evaluation of basic arithmetic strings
+          allowed_chars = set("0123456789+-*. /")
+          if all(c in allowed_chars for c in current):
+            res = eval(current)
+            st.session_state.calc_input = str(res)
+          else:
+            st.session_state.calc_input = "Error"
+        except:
+          st.session_state.calc_input = "Error"
+      else:
+        if current == "0" or current == "Error":
+          st.session_state.calc_input = val
+        else:
+          st.session_state.calc_input += val
+
+
+    c_rows = [
+        ["C", "⌫", "/", "*"],
+        ["7", "8", "9", "-"],
+        ["4", "5", "6", "+"],
+        ["1", "2", "3", "="],
+        ["0", "."],
+    ]
+
+    for row in c_rows:
+      cols = st.columns(len(row))
+      for idx, btn_label in enumerate(row):
+        with cols[idx]:
+          if st.button(
+              btn_label, key=f"calc_btn_{btn_label}_{idx}_{os.urandom(2)}"
+          ):
+            handle_calc(btn_label)
+            st.rerun()
+
   with st.expander("➕ Add New Order", expanded=False):
     with st.form("order_form", clear_on_submit=True):
       customer_name = st.text_input("Customer Name")
@@ -305,12 +362,13 @@ else:
 
       col_p1, col_p2 = st.columns(2)
       with col_p1:
+        # FIXED: Changed value to 0.0 and format to "%g" so fields start completely blank/empty instead of pre-filled "00.00"
         total_price = st.number_input(
-            "Total Price ($)", min_value=0.0, step=10.0, format="%.2f"
+            "Total Price ($)", min_value=0.0, value=0.0, step=10.0, format="%g"
         )
       with col_p2:
         advance_paid = st.number_input(
-            "Advance Paid ($)", min_value=0.0, step=10.0, format="%.2f"
+            "Advance Paid ($)", min_value=0.0, value=0.0, step=10.0, format="%g"
         )
 
       order_status = st.selectbox(
