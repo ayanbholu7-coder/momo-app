@@ -286,42 +286,7 @@ def trigger_whatsapp_popup(phone, message):
   )
 
 
-# 3. Monthly Lock System
-SECRET_CODE = "momo2026"
 now = datetime.datetime.now()
-current_month_year = f"{now.month}-{now.year}"
-
-if "unlocked_month" not in st.session_state:
-  st.session_state.unlocked_month = ""
-
-is_first_of_month = now.day == 1
-needs_unlock = (
-    is_first_of_month and st.session_state.unlocked_month != current_month_year
-)
-
-if needs_unlock:
-  st.markdown("---")
-  st.markdown(
-      "<h2 style='text-align: center; color: #ffffff; text-shadow: 0 0 20px"
-      " #ffffff;'>🔒 App Locked</h2>",
-      unsafe_allow_html=True,
-  )
-  st.markdown(
-      "<p style='text-align: center; color: #ffffff;'>New billing cycle"
-      " started. Enter code to unlock.</p>",
-      unsafe_allow_html=True,
-  )
-
-  entered_code = st.text_input("Unlock Code", type="password")
-  if st.button("Unlock App"):
-    if entered_code == SECRET_CODE:
-      st.session_state.unlocked_month = current_month_year
-      trigger_confetti()
-      st.success("Unlocked successfully!")
-      st.rerun()
-    else:
-      st.error("Incorrect code!")
-  st.stop()
 
 # 4. Routing: Detail Page vs Main Dashboard
 if st.session_state.selected_order_id is not None:
