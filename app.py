@@ -105,9 +105,9 @@ st.markdown("""
             animation: pulseGlow 2s infinite;
         }
 
-        div.stButton > button {
+        div.stButton > button, div.stLinkButton > a {
             background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
+            color: #ffffff !important;
             border-radius: 16px;
             font-weight: 700;
             border: 2px solid rgba(255, 255, 255, 0.7);
@@ -119,12 +119,17 @@ st.markdown("""
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 255, 255, 0.3);
             text-shadow: 0 0 8px #ffffff;
             animation: floatBounce 3.5s ease-in-out infinite;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        div.stButton > button:hover {
-            background: #ffffff;
-            color: #ff1aff;
-            border-color: #ffffff;
+        div.stButton > button:hover, div.stLinkButton > a:hover {
+            background: #ffffff !important;
+            color: #ff1aff !important;
+            border-color: #ffffff !important;
             transform: translateY(-5px) scale(1.03);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 35px #ffffff;
             text-shadow: none;
@@ -389,6 +394,8 @@ if st.session_state.selected_order_id is not None:
         }.get(status, "status-pending")
         
         phone_val = current_order.get("phone", "")
+        foot_size_val = current_order.get("foot_size", "")
+        meter_val = current_order.get("meter", "")
         
         st.markdown(f"""
         <div class="glass-card">
@@ -397,10 +404,21 @@ if st.session_state.selected_order_id is not None:
                 <span class="status-badge {status_class}">{status}</span>
             </div>
             <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>📞 Phone:</b> {phone_val if phone_val else 'None'}</p>
-            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ffffff;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>📅 Due Date:</b> {current_order['date']}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 8px; color: #ffffff;"><b>👟 Foot Size:</b> {foot_size_val if foot_size_val else 'N/A'}</p>
+            <p style="font-size: 1.05rem; margin-bottom: 12px; color: #ffffff;"><b>📏 Fabric Meters:</b> {meter_val if meter_val else 'N/A'}</p>
         </div>
         """, unsafe_allow_html=True)
         
+        # One-Tap WhatsApp Button
+        if phone_val:
+            clean_phone = "".join(filter(str.isdigit, phone_val))
+            wa_message = f"Hello {current_order['name']}, regarding your order with Momo Fashion (Due: {current_order['date']}): "
+            wa_url = f"https://wa.me/{clean_phone}?text={urllib_quote(wa_message) if 'urllib_quote' in globals() else wa_message.replace(' ', '%20')}"
+            st.link_button("💬 One-Tap WhatsApp Chat", wa_url)
+        else:
+            st.info("Add a phone number to enable the One-Tap WhatsApp chat button.")
+
         st.markdown("<h3 style='color: #ffffff;'>⚡ Update Status</h3>", unsafe_allow_html=True)
         status_options = ["Pending", "In Progress", "Ready to Dispatch", "Completed"]
         current_status_index = status_options.index(status) if status in status_options else 0
@@ -456,6 +474,12 @@ else:
                 customer_name = st.text_input("Customer Name")
                 phone_number = st.text_input("Phone Number (Optional)")
                 
+                col_m1, col_m2 = st.columns(2)
+                with col_m1:
+                    foot_size = st.text_input("Foot Size (Optional)")
+                with col_m2:
+                    fabric_meter = st.text_input("Fabric Meters (Optional)")
+
                 col_p1, col_p2 = st.columns(2)
                 with col_p1:
                     total_price = st.number_input("Total Price ($)", min_value=0.0, value=0.0, step=10.0, format="%g")
@@ -499,6 +523,8 @@ else:
                             "id": new_order_id,
                             "name": customer_name,
                             "phone": phone_number,
+                            "foot_size": foot_size,
+                            "meter": fabric_meter,
                             "date": formatted_date,
                             "notes": order_notes,
                             "total_price": total_price,
